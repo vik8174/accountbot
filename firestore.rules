@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Accounts collection - read-only for authenticated requests
+    match /accounts/{accountId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Transactions collection - managed by Cloud Functions
+    match /transactions/{transactionId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Sessions collection - managed by Cloud Functions
+    match /sessions/{sessionId} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

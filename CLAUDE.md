@@ -53,7 +53,7 @@ npm run lint
 User accounts. Created manually in Firebase Console.
 - `name`: string — display name
 - `slug`: string — technical ID (vitya_common, cosmos, cash...)
-- `currency`: "EUR"
+- `currency`: CurrencyCode — ISO 4217 currency code
 - `balance`: number
 - `ownerId`: string — Telegram user ID
 
@@ -61,7 +61,7 @@ User accounts. Created manually in Firebase Console.
 Transaction history.
 - `account`: string — account slug
 - `amount`: number — amount (positive or negative)
-- `currency`: "EUR"
+- `currency`: CurrencyCode — ISO 4217 currency code
 - `description`: string
 - `type`: "add" | "subtract"
 - `timestamp`: Timestamp
@@ -215,5 +215,21 @@ test/user-service-mocks
 - **Language:** TypeScript (strict mode)
 - **Message formatting:** HTML parse mode
 - **Date format:** `YYYY-MM-DD HH:mm`
-- **Currency:** EUR (always)
+- **Currency:** ISO 4217 codes (EUR, USD, UAH)
 - **Comments:** English
+
+---
+
+## Currency Format: ISO 4217
+
+Supported currencies:
+| Code | Name |
+|------|------|
+| `EUR` | Euro |
+| `USD` | US Dollar |
+| `UAH` | Ukrainian Hryvnia |
+
+TypeScript type:
+```typescript
+type CurrencyCode = "EUR" | "USD" | "UAH";
+```

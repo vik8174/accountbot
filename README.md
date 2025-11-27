@@ -96,7 +96,7 @@ accountbot/
 accounts/{accountId}:
   name: string        // Display name
   slug: string        // Technical ID (e.g., "cosmos", "cash")
-  currency: "EUR"     // Currency
+  currency: string    // ISO 4217 code (EUR, USD, UAH)
   balance: number     // Current balance
   ownerId: string     // Telegram user ID
 ```
@@ -106,7 +106,7 @@ accounts/{accountId}:
 transactions/{txId}:
   account: string        // Account slug
   amount: number         // Amount (positive or negative)
-  currency: "EUR"        // Currency
+  currency: string       // ISO 4217 code (EUR, USD, UAH)
   description: string    // Description
   type: "add" | "subtract"
   timestamp: Timestamp
