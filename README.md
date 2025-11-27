@@ -141,6 +141,45 @@ npm run deploy
 npm run lint
 ```
 
+## Firebase CLI
+
+### Account Management
+
+```bash
+# Login
+firebase login
+
+# Add another account
+firebase login:add
+
+# List all accounts
+firebase login:list
+
+# Switch account
+firebase login:use email@example.com
+
+# Logout
+firebase logout
+```
+
+### Project Management
+
+```bash
+# Add project to this directory
+firebase use --add
+
+# Switch between projects
+firebase use <alias>
+
+# List available projects
+firebase use
+
+# List all projects
+firebase projects:list
+```
+
+Project aliases are stored in `.firebaserc`.
+
 ## License
 
 MIT
