@@ -13,7 +13,7 @@ A Telegram bot for tracking transactions across multiple accounts.
 
 ## Tech Stack
 
-- **Runtime:** Node.js 18+
+- **Runtime:** Node.js 20
 - **Framework:** Telegraf.js
 - **Backend:** Firebase Cloud Functions
 - **Database:** Firestore
@@ -48,7 +48,7 @@ accountbot/
 
 ### Prerequisites
 
-1. Node.js 18+
+1. Node.js 20+
 2. Firebase CLI (`npm install -g firebase-tools`)
 3. Firebase project with Blaze plan (pay-as-you-go)
 4. Telegram bot token from @BotFather
