@@ -27,6 +27,12 @@ export async function handleUndo(ctx: Context): Promise<void> {
       return;
     }
 
+    // Check if already reverted (can only undo once)
+    if (lastTx.reverted) {
+      await ctx.reply("You already undid your last transaction.");
+      return;
+    }
+
     // Revert balance
     const revertAmount = -lastTx.amount;
     await updateAccountBalance(lastTx.accountSlug, revertAmount);

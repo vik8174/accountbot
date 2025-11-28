@@ -120,14 +120,13 @@ export async function getTransactions(
 }
 
 /**
- * Get the last non-reverted transaction for a user
+ * Get the last transaction for a user (regardless of reverted status)
  */
 export async function getLastTransaction(
   telegramUserId: string
 ): Promise<(Transaction & { id: string }) | null> {
   const snapshot = await transactionsRef
     .where("telegramUserId", "==", telegramUserId)
-    .where("reverted", "==", false)
     .orderBy("timestamp", "desc")
     .limit(1)
     .get();
