@@ -55,7 +55,7 @@ User accounts. Created manually in Firebase Console.
 - `slug`: string — technical ID (vitya_common, cosmos, cash...)
 - `currency`: CurrencyCode — ISO 4217 currency code
 - `balance`: number
-- `ownerId`: string — Telegram user ID
+- `telegramUserId`: string — Telegram user ID
 
 ### transactions
 Transaction history.
@@ -66,7 +66,7 @@ Transaction history.
 - `type`: "add" | "subtract"
 - `timestamp`: Timestamp
 - `reverted`: boolean
-- `userId`: string
+- `telegramUserId`: string — Telegram user ID
 
 ### sessions
 Temporary state for interactive /add flow.
@@ -74,6 +74,7 @@ Temporary state for interactive /add flow.
 - `account`: string
 - `amount?`: number
 - `timestamp`: Timestamp
+- `telegramUserId`: string — Telegram user ID
 
 ---
 

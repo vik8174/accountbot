@@ -25,11 +25,11 @@ const sessionsRef = db.collection("sessions");
 /**
  * Get all accounts (optionally filtered by owner)
  */
-export async function getAccounts(ownerId?: string): Promise<Account[]> {
+export async function getAccounts(telegramUserId?: string): Promise<Account[]> {
   let query: admin.firestore.Query = accountsRef;
 
-  if (ownerId) {
-    query = query.where("ownerId", "==", ownerId);
+  if (telegramUserId) {
+    query = query.where("telegramUserId", "==", telegramUserId);
   }
 
   const snapshot = await query.get();
@@ -84,7 +84,7 @@ export async function createTransaction(
     type: data.amount >= 0 ? "add" : "subtract",
     timestamp: Timestamp.now(),
     reverted: false,
-    userId: data.userId,
+    telegramUserId: data.telegramUserId,
   };
 
   const docRef = await transactionsRef.add(transaction);
@@ -97,7 +97,7 @@ export async function createTransaction(
 export async function getTransactions(
   limit: number = 5,
   accountSlug?: string,
-  userId?: string
+  telegramUserId?: string
 ): Promise<(Transaction & { id: string })[]> {
   let query: admin.firestore.Query = transactionsRef
     .where("reverted", "==", false)
@@ -108,8 +108,8 @@ export async function getTransactions(
     query = query.where("account", "==", accountSlug);
   }
 
-  if (userId) {
-    query = query.where("userId", "==", userId);
+  if (telegramUserId) {
+    query = query.where("telegramUserId", "==", telegramUserId);
   }
 
   const snapshot = await query.get();
@@ -123,10 +123,10 @@ export async function getTransactions(
  * Get the last non-reverted transaction for a user
  */
 export async function getLastTransaction(
-  userId: string
+  telegramUserId: string
 ): Promise<(Transaction & { id: string }) | null> {
   const snapshot = await transactionsRef
-    .where("userId", "==", userId)
+    .where("telegramUserId", "==", telegramUserId)
     .where("reverted", "==", false)
     .orderBy("timestamp", "desc")
     .limit(1)
@@ -176,7 +176,7 @@ export async function setSession(
     step: SessionStep;
     account: string;
     amount?: number;
-    userId: string;
+    telegramUserId: string;
   }
 ): Promise<void> {
   const session: Session = {
@@ -184,7 +184,7 @@ export async function setSession(
     account: data.account,
     amount: data.amount,
     timestamp: Timestamp.now(),
-    userId: data.userId,
+    telegramUserId: data.telegramUserId,
   };
 
   await sessionsRef.doc(chatId).set(session);

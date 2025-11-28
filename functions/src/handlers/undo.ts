@@ -12,15 +12,15 @@ import {
  */
 export async function handleUndo(ctx: Context): Promise<void> {
   try {
-    const userId = ctx.from?.id?.toString();
+    const telegramUserId = ctx.from?.id?.toString();
 
-    if (!userId) {
+    if (!telegramUserId) {
       await ctx.reply("Could not identify user.");
       return;
     }
 
     // Get last transaction
-    const lastTx = await getLastTransaction(userId);
+    const lastTx = await getLastTransaction(telegramUserId);
 
     if (!lastTx) {
       await ctx.reply("No transactions to undo.");

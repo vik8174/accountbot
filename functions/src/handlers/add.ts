@@ -61,9 +61,9 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
 
     const slug = match[1];
     const chatId = ctx.chat?.id?.toString();
-    const userId = ctx.from?.id?.toString();
+    const telegramUserId = ctx.from?.id?.toString();
 
-    if (!chatId || !userId) {
+    if (!chatId || !telegramUserId) {
       await ctx.answerCbQuery("Error: Could not identify chat or user.");
       return;
     }
@@ -79,7 +79,7 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
     await setSession(chatId, {
       step: "amount",
       account: slug,
-      userId,
+      telegramUserId,
     });
 
     await ctx.answerCbQuery();
@@ -99,9 +99,9 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
 export async function handleSessionMessage(ctx: Context): Promise<boolean> {
   try {
     const chatId = ctx.chat?.id?.toString();
-    const userId = ctx.from?.id?.toString();
+    const telegramUserId = ctx.from?.id?.toString();
 
-    if (!chatId || !userId) {
+    if (!chatId || !telegramUserId) {
       return false;
     }
 
@@ -113,7 +113,7 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
     }
 
     // Verify session belongs to this user
-    if (session.userId !== userId) {
+    if (session.telegramUserId !== telegramUserId) {
       await deleteSession(chatId);
       return false;
     }
@@ -125,7 +125,7 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
     }
 
     if (session.step === "amount") {
-      return await handleAmountInput(ctx, chatId, session.account, userId, text);
+      return await handleAmountInput(ctx, chatId, session.account, telegramUserId, text);
     }
 
     if (session.step === "description") {
@@ -134,7 +134,7 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
         chatId,
         session.account,
         session.amount!,
-        userId,
+        telegramUserId,
         text
       );
     }
@@ -153,7 +153,7 @@ async function handleAmountInput(
   ctx: Context,
   chatId: string,
   accountSlug: string,
-  userId: string,
+  telegramUserId: string,
   text: string
 ): Promise<boolean> {
   // Parse amount
@@ -169,7 +169,7 @@ async function handleAmountInput(
     step: "description",
     account: accountSlug,
     amount,
-    userId,
+    telegramUserId,
   });
 
   await ctx.reply("Enter a description for this transaction:");
@@ -184,7 +184,7 @@ async function handleDescriptionInput(
   chatId: string,
   accountSlug: string,
   amount: number,
-  userId: string,
+  telegramUserId: string,
   description: string
 ): Promise<boolean> {
   // Get account details
@@ -202,7 +202,7 @@ async function handleDescriptionInput(
     amount,
     currency: account.currency,
     description,
-    userId,
+    telegramUserId,
   });
 
   // Update account balance

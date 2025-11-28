@@ -94,24 +94,24 @@ accountbot/
 ### Collection: `accounts`
 ```
 accounts/{accountId}:
-  name: string        // Display name
-  slug: string        // Technical ID (e.g., "cosmos", "cash")
-  currency: string    // ISO 4217 code (EUR, USD, UAH)
-  balance: number     // Current balance
-  ownerId: string     // Telegram user ID
+  name: string            // Display name
+  slug: string            // Technical ID (e.g., "cosmos", "cash")
+  currency: string        // ISO 4217 code (EUR, USD, UAH)
+  balance: number         // Current balance
+  telegramUserId: string  // Telegram user ID
 ```
 
 ### Collection: `transactions`
 ```
 transactions/{txId}:
-  account: string        // Account slug
-  amount: number         // Amount (positive or negative)
-  currency: string       // ISO 4217 code (EUR, USD, UAH)
-  description: string    // Description
+  account: string            // Account slug
+  amount: number             // Amount (positive or negative)
+  currency: string           // ISO 4217 code (EUR, USD, UAH)
+  description: string        // Description
   type: "add" | "subtract"
   timestamp: Timestamp
   reverted: boolean
-  userId: string
+  telegramUserId: string     // Telegram user ID
 ```
 
 ### Collection: `sessions`
@@ -121,6 +121,7 @@ sessions/{chatId}:
   account: string
   amount?: number
   timestamp: Timestamp
+  telegramUserId: string     // Telegram user ID
 ```
 
 ## Development

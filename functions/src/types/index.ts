@@ -23,7 +23,7 @@ export interface Account {
   slug: string;
   currency: CurrencyCode;
   balance: number;
-  ownerId: string;
+  telegramUserId: string;
 }
 
 /**
@@ -37,7 +37,7 @@ export interface Transaction {
   type: TransactionType;
   timestamp: Timestamp;
   reverted: boolean;
-  userId: string;
+  telegramUserId: string;
 }
 
 /**
@@ -48,7 +48,7 @@ export interface Session {
   account: string;
   amount?: number;
   timestamp: Timestamp;
-  userId: string;
+  telegramUserId: string;
 }
 
 /**
@@ -59,5 +59,5 @@ export interface CreateTransactionData {
   amount: number;
   currency: CurrencyCode;
   description: string;
-  userId: string;
+  telegramUserId: string;
 }
