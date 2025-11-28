@@ -1,5 +1,6 @@
 import { Context } from "telegraf";
 import { getAccounts } from "../services/firestore";
+import { log } from "../services/logger";
 
 /**
  * Handle /balance command
@@ -27,7 +28,7 @@ export async function handleBalance(ctx: Context): Promise<void> {
 
     await ctx.reply(message, { parse_mode: "HTML" });
   } catch (error) {
-    console.error("Error in /balance:", error);
+    log.error("Error in /balance command", error as Error);
     await ctx.reply("Failed to get balances. Please try again.");
   }
 }

@@ -5,6 +5,7 @@ import {
   updateAccountBalance,
   getAccounts,
 } from "../services/firestore";
+import { log } from "../services/logger";
 
 /**
  * Handle /undo command
@@ -55,7 +56,7 @@ export async function handleUndo(ctx: Context): Promise<void> {
       { parse_mode: "HTML" }
     );
   } catch (error) {
-    console.error("Error in /undo:", error);
+    log.error("Error in /undo command", error as Error, { telegramUserId: ctx.from?.id });
     await ctx.reply("Failed to undo transaction. Please try again.");
   }
 }

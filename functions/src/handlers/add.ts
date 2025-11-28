@@ -8,6 +8,7 @@ import {
   createTransaction,
   updateAccountBalance,
 } from "../services/firestore";
+import { log } from "../services/logger";
 
 /**
  * Handle /add command
@@ -38,7 +39,7 @@ export async function handleAddCommand(ctx: Context): Promise<void> {
 
     await ctx.reply("Select an account:", Markup.inlineKeyboard(keyboard));
   } catch (error) {
-    console.error("Error in /add:", error);
+    log.error("Error in /add command", error as Error);
     await ctx.reply("Failed to load accounts. Please try again.");
   }
 }
@@ -88,7 +89,7 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
       { parse_mode: "HTML" }
     );
   } catch (error) {
-    console.error("Error in account callback:", error);
+    log.error("Error in account callback", error as Error, { chatId: ctx.chat?.id });
     await ctx.answerCbQuery("Error occurred. Please try again.");
   }
 }
@@ -141,7 +142,7 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
 
     return false;
   } catch (error) {
-    console.error("Error handling session message:", error);
+    log.error("Error handling session message", error as Error, { chatId: ctx.chat?.id });
     return false;
   }
 }

@@ -7,6 +7,7 @@ import {
   CreateTransactionData,
   SessionStep,
 } from "../types";
+import { log } from "./logger";
 
 // Initialize Firebase Admin (only once)
 if (!admin.apps.length) {
@@ -66,6 +67,8 @@ export async function updateAccountBalance(
   await docRef.update({
     balance: admin.firestore.FieldValue.increment(delta),
   });
+
+  log.info("Account balance updated", { accountSlug: slug, delta });
 }
 
 // ============ TRANSACTIONS ============
@@ -88,6 +91,14 @@ export async function createTransaction(
   };
 
   const docRef = await transactionsRef.add(transaction);
+
+  log.info("Transaction created", {
+    transactionId: docRef.id,
+    accountSlug: data.accountSlug,
+    amount: data.amount,
+    telegramUserId: data.telegramUserId,
+  });
+
   return docRef.id;
 }
 
@@ -149,6 +160,8 @@ export async function markTransactionReverted(txId: string): Promise<void> {
   await transactionsRef.doc(txId).update({
     reverted: true,
   });
+
+  log.info("Transaction reverted", { transactionId: txId });
 }
 
 // ============ SESSIONS ============

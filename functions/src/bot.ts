@@ -7,6 +7,7 @@ import {
   handleAccountCallback,
   handleSessionMessage,
 } from "./handlers/add";
+import { log } from "./services/logger";
 
 /**
  * Create and configure the Telegraf bot
@@ -19,7 +20,12 @@ export function createBot(token: string): Telegraf {
     const start = Date.now();
     await next();
     const ms = Date.now() - start;
-    console.log(`[${ctx.updateType}] processed in ${ms}ms`);
+    log.info("Update processed", {
+      updateType: ctx.updateType,
+      duration: ms,
+      userId: ctx.from?.id,
+      chatId: ctx.chat?.id,
+    });
   });
 
   // /start command
@@ -68,7 +74,11 @@ export function createBot(token: string): Telegraf {
 
   // Error handler
   bot.catch((err, ctx) => {
-    console.error(`Error for ${ctx.updateType}:`, err);
+    log.error("Bot error", err as Error, {
+      updateType: ctx.updateType,
+      userId: ctx.from?.id,
+      chatId: ctx.chat?.id,
+    });
   });
 
   return bot;

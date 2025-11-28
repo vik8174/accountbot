@@ -1,5 +1,6 @@
 import { Context } from "telegraf";
 import { getTransactions, getAccounts } from "../services/firestore";
+import { log } from "../services/logger";
 
 /**
  * Format date as YYYY-MM-DD HH:mm
@@ -43,7 +44,7 @@ export async function handleHistory(ctx: Context): Promise<void> {
 
     await ctx.reply(message, { parse_mode: "HTML" });
   } catch (error) {
-    console.error("Error in /history:", error);
+    log.error("Error in /history command", error as Error);
     await ctx.reply("Failed to get history. Please try again.");
   }
 }
