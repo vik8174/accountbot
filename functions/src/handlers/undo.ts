@@ -29,15 +29,15 @@ export async function handleUndo(ctx: Context): Promise<void> {
 
     // Revert balance
     const revertAmount = -lastTx.amount;
-    await updateAccountBalance(lastTx.account, revertAmount);
+    await updateAccountBalance(lastTx.accountSlug, revertAmount);
 
     // Mark as reverted
     await markTransactionReverted(lastTx.id);
 
     // Get account name for display
     const accounts = await getAccounts();
-    const account = accounts.find((a) => a.slug === lastTx.account);
-    const accountName = account?.name || lastTx.account;
+    const account = accounts.find((a) => a.slug === lastTx.accountSlug);
+    const accountName = account?.name || lastTx.accountSlug;
 
     const amountStr = lastTx.amount >= 0 ? `+${lastTx.amount}` : `${lastTx.amount}`;
 

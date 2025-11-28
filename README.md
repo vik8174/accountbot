@@ -104,7 +104,7 @@ accounts/{accountId}:
 ### Collection: `transactions`
 ```
 transactions/{txId}:
-  account: string            // Account slug
+  accountSlug: string        // Account slug
   amount: number             // Amount (positive or negative)
   currency: string           // ISO 4217 code (EUR, USD, UAH)
   description: string        // Description
@@ -118,7 +118,7 @@ transactions/{txId}:
 ```
 sessions/{chatId}:
   step: "amount" | "description"
-  account: string
+  accountSlug: string        // Account slug
   amount?: number
   timestamp: Timestamp
   telegramUserId: string     // Telegram user ID

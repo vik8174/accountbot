@@ -30,7 +30,7 @@ export interface Account {
  * Transaction document in Firestore
  */
 export interface Transaction {
-  account: string;
+  accountSlug: string;
   amount: number;
   currency: CurrencyCode;
   description: string;
@@ -45,7 +45,7 @@ export interface Transaction {
  */
 export interface Session {
   step: SessionStep;
-  account: string;
+  accountSlug: string;
   amount?: number;
   timestamp: Timestamp;
   telegramUserId: string;
@@ -55,7 +55,7 @@ export interface Session {
  * Data for creating a new transaction
  */
 export interface CreateTransactionData {
-  account: string;
+  accountSlug: string;
   amount: number;
   currency: CurrencyCode;
   description: string;

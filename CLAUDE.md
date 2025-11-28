@@ -59,7 +59,7 @@ User accounts. Created manually in Firebase Console.
 
 ### transactions
 Transaction history.
-- `account`: string — account slug
+- `accountSlug`: string — account slug
 - `amount`: number — amount (positive or negative)
 - `currency`: CurrencyCode — ISO 4217 currency code
 - `description`: string
@@ -71,7 +71,7 @@ Transaction history.
 ### sessions
 Temporary state for interactive /add flow.
 - `step`: "amount" | "description"
-- `account`: string
+- `accountSlug`: string — account slug
 - `amount?`: number
 - `timestamp`: Timestamp
 - `telegramUserId`: string — Telegram user ID

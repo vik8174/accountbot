@@ -77,7 +77,7 @@ export async function createTransaction(
   data: CreateTransactionData
 ): Promise<string> {
   const transaction: Transaction = {
-    account: data.account,
+    accountSlug: data.accountSlug,
     amount: data.amount,
     currency: data.currency,
     description: data.description,
@@ -105,7 +105,7 @@ export async function getTransactions(
     .limit(limit);
 
   if (accountSlug) {
-    query = query.where("account", "==", accountSlug);
+    query = query.where("accountSlug", "==", accountSlug);
   }
 
   if (telegramUserId) {
@@ -174,14 +174,14 @@ export async function setSession(
   chatId: string,
   data: {
     step: SessionStep;
-    account: string;
+    accountSlug: string;
     amount?: number;
     telegramUserId: string;
   }
 ): Promise<void> {
   const session: Session = {
     step: data.step,
-    account: data.account,
+    accountSlug: data.accountSlug,
     amount: data.amount,
     timestamp: Timestamp.now(),
     telegramUserId: data.telegramUserId,

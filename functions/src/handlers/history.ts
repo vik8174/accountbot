@@ -34,7 +34,7 @@ export async function handleHistory(ctx: Context): Promise<void> {
     // Build message
     const lines = transactions.map((tx, index) => {
       const date = formatDate(tx.timestamp);
-      const accountName = accountMap.get(tx.account) || tx.account;
+      const accountName = accountMap.get(tx.accountSlug) || tx.accountSlug;
       const amount = tx.amount >= 0 ? `+${tx.amount}` : `${tx.amount}`;
       return `${index + 1}) ${date} — ${accountName} — ${amount} ${tx.currency}\n   "${tx.description}"`;
     });

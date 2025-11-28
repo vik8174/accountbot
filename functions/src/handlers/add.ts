@@ -78,7 +78,7 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
     // Create session
     await setSession(chatId, {
       step: "amount",
-      account: slug,
+      accountSlug: slug,
       telegramUserId,
     });
 
@@ -125,14 +125,14 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
     }
 
     if (session.step === "amount") {
-      return await handleAmountInput(ctx, chatId, session.account, telegramUserId, text);
+      return await handleAmountInput(ctx, chatId, session.accountSlug, telegramUserId, text);
     }
 
     if (session.step === "description") {
       return await handleDescriptionInput(
         ctx,
         chatId,
-        session.account,
+        session.accountSlug,
         session.amount!,
         telegramUserId,
         text
@@ -167,7 +167,7 @@ async function handleAmountInput(
   // Update session to description step
   await setSession(chatId, {
     step: "description",
-    account: accountSlug,
+    accountSlug,
     amount,
     telegramUserId,
   });
@@ -198,7 +198,7 @@ async function handleDescriptionInput(
 
   // Create transaction
   await createTransaction({
-    account: accountSlug,
+    accountSlug,
     amount,
     currency: account.currency,
     description,
