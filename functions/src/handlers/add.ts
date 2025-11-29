@@ -254,7 +254,8 @@ async function handleDescriptionInput(
   const amountStr = formatAmount(amount, account.currency);
   const successTitle = await t("add.success");
 
-  await ctx.sendMessage(
+  await ctx.telegram.sendMessage(
+    ctx.chat!.id,
     `<b>✅ ${successTitle}</b>\n\n` +
       `┌ ${amountStr}\n` +
       `└ ${account.name} · ${createdByName} · ${formattedDescription}`,
