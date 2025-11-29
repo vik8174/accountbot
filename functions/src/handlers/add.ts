@@ -9,7 +9,7 @@ import {
   updateAccountBalance,
 } from "../services/firestore";
 import { log } from "../services/logger";
-import { toMinorUnits, formatAmount, formatBalance } from "../utils/currency";
+import { toMinorUnits, formatAmount } from "../utils/currency";
 import { getMainKeyboard } from "../utils/keyboard";
 import { handleSyncAmountInput } from "./sync";
 import { t } from "../i18n";
@@ -250,23 +250,14 @@ async function handleDescriptionInput(
   // Delete session
   await deleteSession(chatId);
 
-  // Send confirmation (amount is in minor units)
+  // Send confirmation
   const amountStr = formatAmount(amount, account.currency);
-  const newBalance = account.balance + amount;
-  const newBalanceStr = formatBalance(newBalance, account.currency);
-
   const successTitle = await t("add.success");
-  const accountLabel = await t("common.account");
-  const amountLabel = await t("common.amount");
-  const descLabel = await t("common.description");
-  const newBalanceLabel = await t("common.newBalance");
 
   await ctx.reply(
-    `<b>${successTitle}</b>\n\n` +
-      `${accountLabel}: ${account.name}\n` +
-      `${amountLabel}: ${amountStr}\n` +
-      `${descLabel}: "${formattedDescription}"\n\n` +
-      `${newBalanceLabel}: ${newBalanceStr}`,
+    `<b>✅ ${successTitle}</b>\n\n` +
+      `┌ ${amountStr}\n` +
+      `└ ${account.name} · ${createdByName} · ${formattedDescription}`,
     { parse_mode: "HTML", ...(await getMainKeyboard()) }
   );
 
