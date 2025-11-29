@@ -229,6 +229,7 @@ async function handleDescriptionInput(
 
   // Capitalize first letter
   const formattedDescription = description.charAt(0).toUpperCase() + description.slice(1);
+  const createdByName = ctx.from?.first_name || "Unknown";
 
   // Create transaction
   await createTransaction({
@@ -238,6 +239,7 @@ async function handleDescriptionInput(
     description: formattedDescription,
     source: "manual",
     createdBy,
+    createdByName,
   });
 
   // Update account balance

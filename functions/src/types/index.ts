@@ -50,6 +50,8 @@ export interface Transaction {
   reverted: boolean;
   /** Telegram user ID who created this transaction */
   createdBy: string;
+  /** Display name of user who created this transaction */
+  createdByName: string;
 }
 
 /**
@@ -81,4 +83,6 @@ export interface CreateTransactionData {
   source: TransactionSource;
   /** Telegram user ID who created this transaction */
   createdBy: string;
+  /** Display name of user who created this transaction */
+  createdByName: string;
 }

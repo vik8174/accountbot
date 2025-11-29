@@ -45,6 +45,7 @@ accountbot/
         │   └── logger.ts         # Structured logging
         ├── utils/
         │   ├── currency.ts       # Currency formatting
+        │   ├── date.ts           # Date formatting
         │   └── keyboard.ts       # Telegram keyboard
         ├── i18n/
         │   ├── index.ts          # Translation function t()
@@ -128,7 +129,8 @@ transactions/{txId}:
   source: "manual" | "sync"  // Transaction source
   timestamp: Timestamp
   reverted: boolean
-  createdBy: string          // Telegram user ID who created
+  createdBy: string          // Telegram user ID
+  createdByName: string      // Telegram first name
 ```
 
 ### Collection: `sessions`

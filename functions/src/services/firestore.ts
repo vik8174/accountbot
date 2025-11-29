@@ -83,6 +83,7 @@ export async function createTransaction(
     timestamp: Timestamp.now(),
     reverted: false,
     createdBy: data.createdBy,
+    createdByName: data.createdByName,
   };
 
   const docRef = await transactionsRef.add(transaction);

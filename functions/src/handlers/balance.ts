@@ -20,14 +20,14 @@ export async function handleBalance(ctx: Context): Promise<void> {
     // Sort accounts by name
     accounts.sort((a, b) => a.name.localeCompare(b.name));
 
-    // Build table
+    // Build block list
     const lines = accounts.map((acc) => {
       const balanceStr = formatBalance(acc.balance, acc.currency);
-      return `${acc.name.padEnd(20)} ${balanceStr}`;
+      return `┌ ${acc.name}\n└ ${balanceStr}`;
     });
 
     const title = await t("balance.title");
-    const message = `<b>${title}</b>\n\n<pre>${lines.join("\n")}</pre>`;
+    const message = `<b>💰 ${title}</b>\n\n${lines.join("\n\n")}`;
 
     await ctx.reply(message, { parse_mode: "HTML" });
   } catch (error) {

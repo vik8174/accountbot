@@ -25,19 +25,20 @@ export async function handleHistory(ctx: Context): Promise<void> {
     // Get balance sync translation once
     const balanceSyncLabel = await t("history.balanceSync");
 
-    // Build message
+    // Build block message
     const lines = await Promise.all(
-      transactions.map(async (tx, index) => {
+      transactions.map(async (tx) => {
         const date = await formatDate(tx.timestamp);
         const accountName = accountMap.get(tx.accountSlug) || tx.accountSlug;
         const amountStr = formatAmount(tx.amount, tx.currency);
         const description = tx.source === "sync" ? balanceSyncLabel : tx.description;
-        return `${index + 1}) ${date} — ${accountName} — ${amountStr}\n   "${description}"`;
+        const author = tx.createdByName || "—";
+        return `┌ ${date}\n└ ${accountName} · ${amountStr} · ${author} · ${description}`;
       })
     );
 
     const title = await t("history.title");
-    const message = `<b>${title}</b>\n\n${lines.join("\n\n")}`;
+    const message = `<b>📋 ${title}</b>\n\n${lines.join("\n\n")}`;
 
     await ctx.reply(message, { parse_mode: "HTML" });
   } catch (error) {

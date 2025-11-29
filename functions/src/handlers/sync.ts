@@ -166,12 +166,14 @@ export async function handleSyncAmountInput(
   }
 
   // Create adjustment transaction
+  const createdByName = ctx.from?.first_name || "Unknown";
   await createTransaction({
     accountSlug,
     amount: delta,
     currency: account.currency,
     source: "sync",
     createdBy,
+    createdByName,
   });
 
   // Update account balance

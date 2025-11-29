@@ -18,9 +18,13 @@ Telegram → Webhook → Cloud Function → Telegraf → Firestore
 |------|---------|
 | `functions/src/index.ts` | HTTP endpoint for webhook |
 | `functions/src/bot.ts` | Telegraf bot, command registration |
-| `functions/src/handlers/*.ts` | Command logic: /add, /balance, /history, /undo |
+| `functions/src/handlers/*.ts` | Command logic: /add, /balance, /history, /sync |
 | `functions/src/services/firestore.ts` | Firestore CRUD operations |
 | `functions/src/types/index.ts` | TypeScript interfaces |
+| `functions/src/i18n/*.ts` | Localization (uk/en) |
+| `functions/src/utils/keyboard.ts` | Reply keyboard with emoji buttons |
+| `functions/src/utils/currency.ts` | Amount/balance formatting |
+| `functions/src/utils/date.ts` | Date formatting |
 
 ---
 
@@ -61,19 +65,23 @@ Transaction history.
 - `accountSlug`: string — account slug
 - `amount`: number — amount in minor units (cents), positive or negative
 - `currency`: CurrencyCode — ISO 4217 currency code
-- `description`: string
+- `description`: string — optional for sync transactions
 - `type`: "add" | "subtract"
+- `source`: "manual" | "sync" — transaction source
 - `timestamp`: Timestamp
 - `reverted`: boolean
-- `createdBy`: string — Telegram user ID who created the transaction
+- `createdBy`: string — Telegram user ID
+- `createdByName`: string — Telegram first name
 
 ### sessions
-Temporary state for interactive /add flow.
-- `step`: "amount" | "description"
+Temporary state for interactive flows.
+- `step`: "amount" | "description" | "sync_amount"
 - `accountSlug`: string — account slug
 - `amount?`: number — amount in minor units (cents)
 - `timestamp`: Timestamp
-- `createdBy`: string — Telegram user ID who started the session
+- `createdBy`: string — Telegram user ID
+
+Note: `createdByName` is not stored in session — it's taken from `ctx.from.first_name` when creating transaction.
 
 ---
 
@@ -214,9 +222,33 @@ test/user-service-mocks
 
 - **Language:** TypeScript (strict mode)
 - **Message formatting:** HTML parse mode
-- **Date format:** `YYYY-MM-DD HH:mm`
+- **Date format:** `15 січ` (localized short month)
+- **Amount format:** `+1,234.56 $` (symbol, thousand separators)
 - **Currency:** ISO 4217 codes (EUR, USD, UAH)
 - **Comments:** English
+
+---
+
+## Display Formats
+
+### Balance
+```
+💰 Account Balances
+
+┌ Card
+└ +1,234.56 $
+
+┌ Cash
+└ +500.00 ₴
+```
+
+### History
+```
+📋 Recent Transactions
+
+┌ 29 Jul
+└ Cash · +4.00 € · Andrew · Transaction description
+```
 
 ---
 
