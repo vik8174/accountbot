@@ -158,11 +158,28 @@ async function handleAmountInput(
   createdBy: string,
   text: string
 ): Promise<boolean> {
-  // Parse amount (user enters in major units like 2.50)
-  const amountMajor = parseFloat(text.replace(",", "."));
+  const MAX_AMOUNT = 1000000;
 
+  // Parse amount (user enters in major units like 2.50)
+  const normalizedText = text.replace(",", ".");
+  const amountMajor = parseFloat(normalizedText);
+
+  // Not a number or zero
   if (isNaN(amountMajor) || amountMajor === 0) {
     await ctx.reply("Please enter a valid number (not zero):");
+    return true;
+  }
+
+  // Maximum 2 decimal places
+  const decimalPart = normalizedText.split(".")[1];
+  if (decimalPart && decimalPart.length > 2) {
+    await ctx.reply("Maximum 2 decimal places allowed (e.g., 25.50):");
+    return true;
+  }
+
+  // Amount limit
+  if (Math.abs(amountMajor) > MAX_AMOUNT) {
+    await ctx.reply(`Amount cannot exceed ${MAX_AMOUNT.toLocaleString()}:`);
     return true;
   }
 
