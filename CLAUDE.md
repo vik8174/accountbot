@@ -178,6 +178,14 @@ test/user-service-mocks
 └ Cash · +4.00 € · Andrew · Transaction description
 ```
 
+### Add Success
+```
+✅ Transaction Added
+
+┌ +264.40 €
+└ Cash · Viktor · Test transaction
+```
+
 ---
 
 ## Currency Format: ISO 4217
