@@ -8,6 +8,7 @@ import {
   handleSessionMessage,
 } from "./handlers/add";
 import { log } from "./services/logger";
+import { mainKeyboard } from "./utils/keyboard";
 
 /**
  * Create and configure the Telegraf bot
@@ -33,13 +34,8 @@ export function createBot(token: string): Telegraf {
     const name = ctx.from.first_name || "User";
     await ctx.reply(
       `Hello, ${name}! Welcome to AccountBot.\n\n` +
-        `<b>Available commands:</b>\n` +
-        `/add — Add a new transaction\n` +
-        `/balance — View account balances\n` +
-        `/history — View recent transactions\n` +
-        `/undo — Revert last transaction\n\n` +
         `<i>Simple. Fast. Accurate.</i>`,
-      { parse_mode: "HTML" }
+      { parse_mode: "HTML", ...mainKeyboard }
     );
   });
 
@@ -51,7 +47,7 @@ export function createBot(token: string): Telegraf {
         `/balance — View all account balances\n` +
         `/history — View last 5 transactions\n` +
         `/undo — Revert your last transaction`,
-      { parse_mode: "HTML" }
+      { parse_mode: "HTML", ...mainKeyboard }
     );
   });
 

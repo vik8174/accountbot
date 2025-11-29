@@ -10,6 +10,7 @@ import {
 } from "../services/firestore";
 import { log } from "../services/logger";
 import { toMinorUnits, formatAmount, formatBalance } from "../utils/currency";
+import { mainKeyboard } from "../utils/keyboard";
 
 /**
  * Handle /add command
@@ -247,7 +248,7 @@ async function handleDescriptionInput(
       `Amount: ${amountStr}\n` +
       `Description: "${formattedDescription}"\n\n` +
       `New balance: ${newBalanceStr}`,
-    { parse_mode: "HTML" }
+    { parse_mode: "HTML", ...mainKeyboard }
   );
 
   return true;
