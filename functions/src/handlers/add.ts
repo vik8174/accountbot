@@ -218,12 +218,15 @@ async function handleDescriptionInput(
     return true;
   }
 
+  // Capitalize first letter
+  const formattedDescription = description.charAt(0).toUpperCase() + description.slice(1);
+
   // Create transaction
   await createTransaction({
     accountSlug,
     amount,
     currency: account.currency,
-    description,
+    description: formattedDescription,
     createdBy,
   });
 
@@ -242,7 +245,7 @@ async function handleDescriptionInput(
     "<b>Transaction Added</b>\n\n" +
       `Account: ${account.name}\n` +
       `Amount: ${amountStr}\n` +
-      `Description: "${description}"\n\n` +
+      `Description: "${formattedDescription}"\n\n` +
       `New balance: ${newBalanceStr}`,
     { parse_mode: "HTML" }
   );
