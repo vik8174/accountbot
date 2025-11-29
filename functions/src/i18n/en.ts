@@ -58,7 +58,7 @@ export const en = {
     accountNotFound: "Account not found.",
   },
   keyboard: {
-    add: "➕ Add",
+    add: "💸 Transaction",
     balance: "💰 Balance",
     history: "📋 History",
     sync: "🔄 Sync",

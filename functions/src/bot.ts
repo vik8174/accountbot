@@ -66,7 +66,7 @@ export function createBot(token: string): Telegraf {
   // bot.command("undo", handleUndo); // Temporarily disabled
 
   // Keyboard button handlers (hears emoji prefix)
-  bot.hears(/^➕/, handleAddCommand);
+  bot.hears(/^💸/, handleAddCommand);
   bot.hears(/^💰/, handleBalance);
   bot.hears(/^📋/, handleHistory);
   bot.hears(/^🔄/, handleSyncCommand);
