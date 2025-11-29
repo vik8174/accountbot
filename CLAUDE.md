@@ -105,44 +105,6 @@ const telegramToken = defineSecret("TELEGRAM_BOT_TOKEN");
 
 ---
 
-## Telegram Bot Setup
-
-### Configure for Group Chats (via @BotFather)
-1. `/mybots` → select bot → **Bot Settings** → **Allow Groups** → Turn on
-2. `/mybots` → select bot → **Bot Settings** → **Group Privacy** → Turn off
-3. Remove and re-add bot to group for changes to apply
-
-### Set Webhook
-```bash
-curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=<FUNCTION_URL>"
-```
-
----
-
-## Firebase Deployment
-
-### Deploy Functions
-```bash
-firebase deploy --only functions
-```
-
-### Deploy Firestore Indexes
-```bash
-firebase deploy --only firestore:indexes
-```
-
-### Deploy Firestore Rules
-```bash
-firebase deploy --only firestore:rules
-```
-
-### Deploy All
-```bash
-firebase deploy
-```
-
----
-
 ## Common Tasks
 
 ### Add a new command
