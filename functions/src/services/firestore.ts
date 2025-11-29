@@ -180,9 +180,9 @@ export async function setSession(
   const session: Session = {
     step: data.step,
     accountSlug: data.accountSlug,
-    amount: data.amount,
     timestamp: Timestamp.now(),
     createdBy: data.createdBy,
+    ...(data.amount !== undefined && { amount: data.amount }),
   };
 
   await sessionsRef.doc(chatId).set(session);
