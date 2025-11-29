@@ -47,7 +47,6 @@ export interface Transaction {
   /** Source of transaction: manual (/add) or sync (/sync) */
   source: TransactionSource;
   createdAt: Timestamp;
-  reverted: boolean;
   /** Telegram user ID who created this transaction */
   createdById: string;
   /** Display name of user who created this transaction */

@@ -69,7 +69,6 @@ Transaction history.
 - `type`: "add" | "subtract"
 - `source`: "manual" | "sync" — transaction source
 - `createdAt`: Timestamp
-- `reverted`: boolean
 - `createdById`: string — Telegram user ID
 - `createdByName`: string — Telegram first name
 

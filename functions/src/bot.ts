@@ -1,7 +1,6 @@
 import { Telegraf } from "telegraf";
 import { handleBalance } from "./handlers/balance";
 import { handleHistory } from "./handlers/history";
-// import { handleUndo } from "./handlers/undo"; // Temporarily disabled
 import {
   handleAddCommand,
   handleAccountCallback,
@@ -63,7 +62,6 @@ export function createBot(token: string): Telegraf {
   bot.command("balance", handleBalance);
   bot.command("history", handleHistory);
   bot.command("sync", handleSyncCommand);
-  // bot.command("undo", handleUndo); // Temporarily disabled
 
   // Keyboard button handlers (hears emoji prefix)
   bot.hears(/^💸/, handleAddCommand);

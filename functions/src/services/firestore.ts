@@ -81,7 +81,6 @@ export async function createTransaction(
     type: data.amount >= 0 ? "add" : "subtract",
     source: data.source,
     createdAt: Timestamp.now(),
-    reverted: false,
     createdById: data.createdById,
     createdByName: data.createdByName,
   };
@@ -106,8 +105,7 @@ export async function getTransactions(
   accountSlug?: string
 ): Promise<(Transaction & { id: string })[]> {
   let query: admin.firestore.Query = transactionsRef
-    .where("reverted", "==", false)
-    .orderBy("timestamp", "desc")
+    .orderBy("createdAt", "desc")
     .limit(limit);
 
   if (accountSlug) {
@@ -119,37 +117,6 @@ export async function getTransactions(
     id: doc.id,
     ...(doc.data() as Transaction),
   }));
-}
-
-/**
- * Get the last transaction (regardless of reverted status)
- */
-export async function getLastTransaction(): Promise<(Transaction & { id: string }) | null> {
-  const snapshot = await transactionsRef
-    .orderBy("timestamp", "desc")
-    .limit(1)
-    .get();
-
-  if (snapshot.empty) {
-    return null;
-  }
-
-  const doc = snapshot.docs[0];
-  return {
-    id: doc.id,
-    ...(doc.data() as Transaction),
-  };
-}
-
-/**
- * Mark a transaction as reverted
- */
-export async function markTransactionReverted(txId: string): Promise<void> {
-  await transactionsRef.doc(txId).update({
-    reverted: true,
-  });
-
-  log.info("Transaction reverted", { transactionId: txId });
 }
 
 // ============ SESSIONS ============

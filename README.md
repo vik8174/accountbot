@@ -128,7 +128,6 @@ transactions/{txId}:
   type: "add" | "subtract"
   source: "manual" | "sync"  // Transaction source
   createdAt: Timestamp
-  reverted: boolean
   createdById: string        // Telegram user ID
   createdByName: string      // Telegram first name
 ```
