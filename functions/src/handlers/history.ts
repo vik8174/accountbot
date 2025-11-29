@@ -14,7 +14,7 @@ export async function handleHistory(ctx: Context): Promise<void> {
     const transactions = await getTransactions(5);
 
     if (transactions.length === 0) {
-      await ctx.reply(await t("history.noTransactions"));
+      await ctx.sendMessage(await t("history.noTransactions"));
       return;
     }
 
@@ -44,9 +44,9 @@ export async function handleHistory(ctx: Context): Promise<void> {
     const title = await t("history.title");
     const message = `<b>📋 ${title}</b>\n\n${lines.join("\n\n")}`;
 
-    await ctx.reply(message, { parse_mode: "HTML" });
+    await ctx.sendMessage(message, { parse_mode: "HTML" });
   } catch (error) {
     log.error("Error in /history command", error as Error);
-    await ctx.reply(await t("common.failed"));
+    await ctx.sendMessage(await t("common.failed"));
   }
 }

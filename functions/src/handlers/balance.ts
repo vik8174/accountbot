@@ -13,7 +13,7 @@ export async function handleBalance(ctx: Context): Promise<void> {
     const accounts = await getAccounts();
 
     if (accounts.length === 0) {
-      await ctx.reply(await t("balance.noAccounts"));
+      await ctx.sendMessage(await t("balance.noAccounts"));
       return;
     }
 
@@ -29,9 +29,9 @@ export async function handleBalance(ctx: Context): Promise<void> {
     const title = await t("balance.title");
     const message = `<b>💰 ${title}</b>\n\n${lines.join("\n\n")}`;
 
-    await ctx.reply(message, { parse_mode: "HTML" });
+    await ctx.sendMessage(message, { parse_mode: "HTML" });
   } catch (error) {
     log.error("Error in /balance command", error as Error);
-    await ctx.reply(await t("common.failed"));
+    await ctx.sendMessage(await t("common.failed"));
   }
 }

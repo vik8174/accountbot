@@ -21,7 +21,7 @@ export async function handleSyncCommand(ctx: Context): Promise<void> {
     const accounts = await getAccounts();
 
     if (accounts.length === 0) {
-      await ctx.reply(await t("add.noAccounts"));
+      await ctx.sendMessage(await t("add.noAccounts"));
       return;
     }
 
@@ -39,10 +39,10 @@ export async function handleSyncCommand(ctx: Context): Promise<void> {
       keyboard.push(buttons.slice(i, i + 2));
     }
 
-    await ctx.reply(await t("sync.selectAccount"), Markup.inlineKeyboard(keyboard));
+    await ctx.sendMessage(await t("sync.selectAccount"), Markup.inlineKeyboard(keyboard));
   } catch (error) {
     log.error("Error in /sync command", error as Error);
-    await ctx.reply(await t("common.failed"));
+    await ctx.sendMessage(await t("common.failed"));
   }
 }
 
@@ -120,26 +120,26 @@ export async function handleSyncAmountInput(
 
   // Not a number
   if (isNaN(newBalanceMajor)) {
-    await ctx.reply(await t("add.invalidNumber"));
+    await ctx.sendMessage(await t("add.invalidNumber"));
     return true;
   }
 
   // Negative balance not allowed
   if (newBalanceMajor < 0) {
-    await ctx.reply(await t("sync.negativeNotAllowed"));
+    await ctx.sendMessage(await t("sync.negativeNotAllowed"));
     return true;
   }
 
   // Maximum 2 decimal places
   const decimalPart = normalizedText.split(".")[1];
   if (decimalPart && decimalPart.length > 2) {
-    await ctx.reply(await t("add.maxDecimals"));
+    await ctx.sendMessage(await t("add.maxDecimals"));
     return true;
   }
 
   // Amount limit
   if (newBalanceMajor > MAX_AMOUNT) {
-    await ctx.reply(await t("sync.maxBalance", { max: MAX_AMOUNT.toLocaleString() }));
+    await ctx.sendMessage(await t("sync.maxBalance", { max: MAX_AMOUNT.toLocaleString() }));
     return true;
   }
 
@@ -147,7 +147,7 @@ export async function handleSyncAmountInput(
   const account = await getAccountBySlug(accountSlug);
 
   if (!account) {
-    await ctx.reply(await t("sync.cancelled"));
+    await ctx.sendMessage(await t("sync.cancelled"));
     await deleteSession(chatId);
     return true;
   }
@@ -159,7 +159,7 @@ export async function handleSyncAmountInput(
   // If no change needed
   if (delta === 0) {
     await deleteSession(chatId);
-    await ctx.reply(await t("sync.noChange"), {
+    await ctx.sendMessage(await t("sync.noChange"), {
       ...(await getMainKeyboard()),
     });
     return true;
@@ -193,7 +193,7 @@ export async function handleSyncAmountInput(
   const adjustmentLabel = await t("common.adjustment");
   const newBalanceLabel = await t("common.newBalance");
 
-  await ctx.reply(
+  await ctx.sendMessage(
     `<b>${successTitle}</b>\n\n` +
       `${accountLabel}: ${account.name}\n` +
       `${previousLabel}: ${oldBalanceStr}\n` +

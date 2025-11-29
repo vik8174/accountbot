@@ -23,7 +23,7 @@ export async function handleAddCommand(ctx: Context): Promise<void> {
     const accounts = await getAccounts();
 
     if (accounts.length === 0) {
-      await ctx.reply(await t("add.noAccounts"));
+      await ctx.sendMessage(await t("add.noAccounts"));
       return;
     }
 
@@ -41,10 +41,10 @@ export async function handleAddCommand(ctx: Context): Promise<void> {
       keyboard.push(buttons.slice(i, i + 2));
     }
 
-    await ctx.reply(await t("add.selectAccount"), Markup.inlineKeyboard(keyboard));
+    await ctx.sendMessage(await t("add.selectAccount"), Markup.inlineKeyboard(keyboard));
   } catch (error) {
     log.error("Error in /add command", error as Error);
-    await ctx.reply(await t("common.failed"));
+    await ctx.sendMessage(await t("common.failed"));
   }
 }
 
@@ -175,20 +175,20 @@ async function handleAmountInput(
 
   // Not a number or zero
   if (isNaN(amountMajor) || amountMajor === 0) {
-    await ctx.reply(await t("add.invalidNumber"));
+    await ctx.sendMessage(await t("add.invalidNumber"));
     return true;
   }
 
   // Maximum 2 decimal places
   const decimalPart = normalizedText.split(".")[1];
   if (decimalPart && decimalPart.length > 2) {
-    await ctx.reply(await t("add.maxDecimals"));
+    await ctx.sendMessage(await t("add.maxDecimals"));
     return true;
   }
 
   // Amount limit
   if (Math.abs(amountMajor) > MAX_AMOUNT) {
-    await ctx.reply(await t("add.maxAmount", { max: MAX_AMOUNT.toLocaleString() }));
+    await ctx.sendMessage(await t("add.maxAmount", { max: MAX_AMOUNT.toLocaleString() }));
     return true;
   }
 
@@ -203,7 +203,7 @@ async function handleAmountInput(
     createdById,
   });
 
-  await ctx.reply(await t("add.enterDescription"));
+  await ctx.sendMessage(await t("add.enterDescription"));
   return true;
 }
 
@@ -222,7 +222,7 @@ async function handleDescriptionInput(
   const account = await getAccountBySlug(accountSlug);
 
   if (!account) {
-    await ctx.reply(await t("add.accountNotFound"));
+    await ctx.sendMessage(await t("add.accountNotFound"));
     await deleteSession(chatId);
     return true;
   }
@@ -254,7 +254,7 @@ async function handleDescriptionInput(
   const amountStr = formatAmount(amount, account.currency);
   const successTitle = await t("add.success");
 
-  await ctx.reply(
+  await ctx.sendMessage(
     `<b>✅ ${successTitle}</b>\n\n` +
       `┌ ${amountStr}\n` +
       `└ ${account.name} · ${createdByName} · ${formattedDescription}`,

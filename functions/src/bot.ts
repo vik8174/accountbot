@@ -38,7 +38,7 @@ export function createBot(token: string): Telegraf {
     const name = ctx.from.first_name || "User";
     const welcome = await t("start.welcome", { name });
     const tagline = await t("start.tagline");
-    await ctx.reply(`${welcome}\n\n<i>${tagline}</i>`, {
+    await ctx.sendMessage(`${welcome}\n\n<i>${tagline}</i>`, {
       parse_mode: "HTML",
       ...(await getMainKeyboard()),
     });
@@ -51,7 +51,7 @@ export function createBot(token: string): Telegraf {
     const balance = await t("help.balance");
     const history = await t("help.history");
     const sync = await t("help.sync");
-    await ctx.reply(
+    await ctx.sendMessage(
       `<b>${title}</b>\n\n${add}\n${balance}\n${history}\n${sync}`,
       { parse_mode: "HTML", ...(await getMainKeyboard()) }
     );
