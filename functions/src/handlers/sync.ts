@@ -9,7 +9,7 @@ import {
 } from "../services/firestore";
 import { log } from "../services/logger";
 import { toMinorUnits, formatAmount, formatBalance } from "../utils/currency";
-import { mainKeyboard } from "../utils/keyboard";
+import { getMainKeyboard } from "../utils/keyboard";
 import { t } from "../i18n";
 
 /**
@@ -160,7 +160,7 @@ export async function handleSyncAmountInput(
   if (delta === 0) {
     await deleteSession(chatId);
     await ctx.reply(await t("sync.noChange"), {
-      ...mainKeyboard,
+      ...(await getMainKeyboard()),
     });
     return true;
   }
@@ -197,7 +197,7 @@ export async function handleSyncAmountInput(
       `${previousLabel}: ${oldBalanceStr}\n` +
       `${adjustmentLabel}: ${deltaStr}\n` +
       `${newBalanceLabel}: ${newBalanceStr}`,
-    { parse_mode: "HTML", ...mainKeyboard }
+    { parse_mode: "HTML", ...(await getMainKeyboard()) }
   );
 
   return true;

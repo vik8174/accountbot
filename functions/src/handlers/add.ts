@@ -10,7 +10,7 @@ import {
 } from "../services/firestore";
 import { log } from "../services/logger";
 import { toMinorUnits, formatAmount, formatBalance } from "../utils/currency";
-import { mainKeyboard } from "../utils/keyboard";
+import { getMainKeyboard } from "../utils/keyboard";
 import { handleSyncAmountInput } from "./sync";
 import { t } from "../i18n";
 
@@ -263,7 +263,7 @@ async function handleDescriptionInput(
       `${amountLabel}: ${amountStr}\n` +
       `${descLabel}: "${formattedDescription}"\n\n` +
       `${newBalanceLabel}: ${newBalanceStr}`,
-    { parse_mode: "HTML", ...mainKeyboard }
+    { parse_mode: "HTML", ...(await getMainKeyboard()) }
   );
 
   return true;

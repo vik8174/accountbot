@@ -57,4 +57,10 @@ export const en = {
     userError: "Error: Could not identify chat or user.",
     accountNotFound: "Account not found.",
   },
+  keyboard: {
+    add: "➕ Add",
+    balance: "💰 Balance",
+    history: "📋 History",
+    sync: "🔄 Sync",
+  },
 };

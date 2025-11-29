@@ -12,7 +12,7 @@ import {
   handleSyncAccountCallback,
 } from "./handlers/sync";
 import { log } from "./services/logger";
-import { mainKeyboard } from "./utils/keyboard";
+import { getMainKeyboard } from "./utils/keyboard";
 import { t } from "./i18n";
 
 /**
@@ -41,7 +41,7 @@ export function createBot(token: string): Telegraf {
     const tagline = await t("start.tagline");
     await ctx.reply(`${welcome}\n\n<i>${tagline}</i>`, {
       parse_mode: "HTML",
-      ...mainKeyboard,
+      ...(await getMainKeyboard()),
     });
   });
 
@@ -54,7 +54,7 @@ export function createBot(token: string): Telegraf {
     const sync = await t("help.sync");
     await ctx.reply(
       `<b>${title}</b>\n\n${add}\n${balance}\n${history}\n${sync}`,
-      { parse_mode: "HTML", ...mainKeyboard }
+      { parse_mode: "HTML", ...(await getMainKeyboard()) }
     );
   });
 
@@ -64,6 +64,12 @@ export function createBot(token: string): Telegraf {
   bot.command("history", handleHistory);
   bot.command("sync", handleSyncCommand);
   // bot.command("undo", handleUndo); // Temporarily disabled
+
+  // Keyboard button handlers (hears emoji prefix)
+  bot.hears(/^➕/, handleAddCommand);
+  bot.hears(/^💰/, handleBalance);
+  bot.hears(/^📋/, handleHistory);
+  bot.hears(/^🔄/, handleSyncCommand);
 
   // Callback query handlers for account selection
   bot.action(/^add:account:.+$/, handleAccountCallback);
