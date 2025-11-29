@@ -82,9 +82,16 @@ accountbot/
    ```bash
    npm run build
    firebase deploy --only functions
+   firebase deploy --only firestore:indexes
+   firebase deploy --only firestore:rules
    ```
 
-6. Set webhook:
+6. Configure bot for group chats (via @BotFather):
+   - `/mybots` → select bot → **Bot Settings** → **Allow Groups** → Turn on
+   - `/mybots` → select bot → **Bot Settings** → **Group Privacy** → Turn off
+   - Remove and re-add bot to group for changes to apply
+
+7. Set webhook:
    ```bash
    curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<region>-<project>.cloudfunctions.net/telegramBot"
    ```
@@ -97,21 +104,20 @@ accounts/{accountId}:
   name: string            // Display name
   slug: string            // Technical ID (e.g., "cosmos", "cash")
   currency: string        // ISO 4217 code (EUR, USD, UAH)
-  balance: number         // Current balance
-  telegramUserId: string  // Telegram user ID
+  balance: number         // Balance in minor units (cents)
 ```
 
 ### Collection: `transactions`
 ```
 transactions/{txId}:
   accountSlug: string        // Account slug
-  amount: number             // Amount (positive or negative)
+  amount: number             // Amount in minor units (cents), positive or negative
   currency: string           // ISO 4217 code (EUR, USD, UAH)
   description: string        // Description
   type: "add" | "subtract"
   timestamp: Timestamp
   reverted: boolean
-  telegramUserId: string     // Telegram user ID
+  createdBy: string          // Telegram user ID who created
 ```
 
 ### Collection: `sessions`
@@ -119,9 +125,9 @@ transactions/{txId}:
 sessions/{chatId}:
   step: "amount" | "description"
   accountSlug: string        // Account slug
-  amount?: number
+  amount?: number            // Amount in minor units (cents)
   timestamp: Timestamp
-  telegramUserId: string     // Telegram user ID
+  createdBy: string          // Telegram user ID who started
 ```
 
 ## Development
