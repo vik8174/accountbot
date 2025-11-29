@@ -217,7 +217,7 @@ async function handleDescriptionInput(
   const newBalance = account.balance + amount;
 
   await ctx.reply(
-    `<b>Transaction Added</b>\n\n` +
+    "<b>Transaction Added</b>\n\n" +
       `Account: ${account.name}\n` +
       `Amount: ${amountStr} ${account.currency}\n` +
       `Description: "${description}"\n\n` +

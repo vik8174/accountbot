@@ -49,7 +49,7 @@ export async function handleUndo(ctx: Context): Promise<void> {
     const amountStr = lastTx.amount >= 0 ? `+${lastTx.amount}` : `${lastTx.amount}`;
 
     await ctx.reply(
-      `<b>Transaction Reverted</b>\n\n` +
+      "<b>Transaction Reverted</b>\n\n" +
         `Account: ${accountName}\n` +
         `Amount: ${amountStr} ${lastTx.currency}\n` +
         `Description: "${lastTx.description}"`,
