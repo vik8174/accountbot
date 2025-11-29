@@ -13,6 +13,7 @@ import {
 } from "./handlers/sync";
 import { log } from "./services/logger";
 import { mainKeyboard } from "./utils/keyboard";
+import { t } from "./i18n";
 
 /**
  * Create and configure the Telegraf bot
@@ -36,21 +37,23 @@ export function createBot(token: string): Telegraf {
   // /start command
   bot.start(async (ctx) => {
     const name = ctx.from.first_name || "User";
-    await ctx.reply(
-      `Hello, ${name}! Welcome to AccountBot.\n\n` +
-        `<i>Simple. Fast. Accurate.</i>`,
-      { parse_mode: "HTML", ...mainKeyboard }
-    );
+    const welcome = await t("start.welcome", { name });
+    const tagline = await t("start.tagline");
+    await ctx.reply(`${welcome}\n\n<i>${tagline}</i>`, {
+      parse_mode: "HTML",
+      ...mainKeyboard,
+    });
   });
 
   // /help command
   bot.help(async (ctx) => {
+    const title = await t("help.title");
+    const add = await t("help.add");
+    const balance = await t("help.balance");
+    const history = await t("help.history");
+    const sync = await t("help.sync");
     await ctx.reply(
-      `<b>AccountBot Help</b>\n\n` +
-        `/add — Add a new transaction (interactive)\n` +
-        `/balance — View all account balances\n` +
-        `/history — View last 5 transactions\n` +
-        `/sync — Sync account balance with actual`,
+      `<b>${title}</b>\n\n${add}\n${balance}\n${history}\n${sync}`,
       { parse_mode: "HTML", ...mainKeyboard }
     );
   });

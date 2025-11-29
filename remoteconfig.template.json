@@ -1,0 +1,15 @@
+{
+  "parameters": {
+    "bot_language": {
+      "defaultValue": {
+        "value": "uk"
+      },
+      "description": "Bot interface language (ISO 639-1 code)",
+      "valueType": "STRING"
+    }
+  },
+  "parameterGroups": {},
+  "version": {
+    "description": "Initial bot localization config"
+  }
+}

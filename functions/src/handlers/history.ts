@@ -2,6 +2,7 @@ import { Context } from "telegraf";
 import { getTransactions, getAccounts } from "../services/firestore";
 import { log } from "../services/logger";
 import { formatAmount } from "../utils/currency";
+import { t } from "../i18n";
 
 /**
  * Format date as YYYY-MM-DD HH:mm
@@ -25,7 +26,7 @@ export async function handleHistory(ctx: Context): Promise<void> {
     const transactions = await getTransactions(5);
 
     if (transactions.length === 0) {
-      await ctx.reply("No transactions found.");
+      await ctx.reply(await t("history.noTransactions"));
       return;
     }
 
@@ -33,20 +34,24 @@ export async function handleHistory(ctx: Context): Promise<void> {
     const accounts = await getAccounts();
     const accountMap = new Map(accounts.map((a) => [a.slug, a.name]));
 
+    // Get balance sync translation once
+    const balanceSyncLabel = await t("history.balanceSync");
+
     // Build message
     const lines = transactions.map((tx, index) => {
       const date = formatDate(tx.timestamp);
       const accountName = accountMap.get(tx.accountSlug) || tx.accountSlug;
       const amountStr = formatAmount(tx.amount, tx.currency);
-      const description = tx.source === "sync" ? "Balance sync" : tx.description;
+      const description = tx.source === "sync" ? balanceSyncLabel : tx.description;
       return `${index + 1}) ${date} — ${accountName} — ${amountStr}\n   "${description}"`;
     });
 
-    const message = `<b>Recent Transactions</b>\n\n${lines.join("\n\n")}`;
+    const title = await t("history.title");
+    const message = `<b>${title}</b>\n\n${lines.join("\n\n")}`;
 
     await ctx.reply(message, { parse_mode: "HTML" });
   } catch (error) {
     log.error("Error in /history command", error as Error);
-    await ctx.reply("Failed to get history. Please try again.");
+    await ctx.reply(await t("common.failed"));
   }
 }

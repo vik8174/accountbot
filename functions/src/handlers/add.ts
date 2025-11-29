@@ -12,6 +12,7 @@ import { log } from "../services/logger";
 import { toMinorUnits, formatAmount, formatBalance } from "../utils/currency";
 import { mainKeyboard } from "../utils/keyboard";
 import { handleSyncAmountInput } from "./sync";
+import { t } from "../i18n";
 
 /**
  * Handle /add command
@@ -22,7 +23,7 @@ export async function handleAddCommand(ctx: Context): Promise<void> {
     const accounts = await getAccounts();
 
     if (accounts.length === 0) {
-      await ctx.reply("No accounts available. Please create accounts first.");
+      await ctx.reply(await t("add.noAccounts"));
       return;
     }
 
@@ -40,10 +41,10 @@ export async function handleAddCommand(ctx: Context): Promise<void> {
       keyboard.push(buttons.slice(i, i + 2));
     }
 
-    await ctx.reply("Select an account:", Markup.inlineKeyboard(keyboard));
+    await ctx.reply(await t("add.selectAccount"), Markup.inlineKeyboard(keyboard));
   } catch (error) {
     log.error("Error in /add command", error as Error);
-    await ctx.reply("Failed to load accounts. Please try again.");
+    await ctx.reply(await t("common.failed"));
   }
 }
 
@@ -68,14 +69,14 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
     const telegramUserId = ctx.from?.id?.toString();
 
     if (!chatId || !telegramUserId) {
-      await ctx.answerCbQuery("Error: Could not identify chat or user.");
+      await ctx.answerCbQuery(await t("common.userError"));
       return;
     }
 
     // Verify account exists
     const account = await getAccountBySlug(slug);
     if (!account) {
-      await ctx.answerCbQuery("Account not found.");
+      await ctx.answerCbQuery(await t("common.accountNotFound"));
       return;
     }
 
@@ -86,14 +87,16 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
       createdBy: telegramUserId,
     });
 
+    const selected = await t("add.selected", { name: account.name });
+    const enterAmount = await t("add.enterAmount");
+
     await ctx.answerCbQuery();
-    await ctx.editMessageText(
-      `Selected: <b>${account.name}</b>\n\nEnter the amount (positive or negative):`,
-      { parse_mode: "HTML" }
-    );
+    await ctx.editMessageText(`${selected}\n\n${enterAmount}`, {
+      parse_mode: "HTML",
+    });
   } catch (error) {
     log.error("Error in account callback", error as Error, { chatId: ctx.chat?.id });
-    await ctx.answerCbQuery("Error occurred. Please try again.");
+    await ctx.answerCbQuery(await t("common.error"));
   }
 }
 
@@ -172,20 +175,20 @@ async function handleAmountInput(
 
   // Not a number or zero
   if (isNaN(amountMajor) || amountMajor === 0) {
-    await ctx.reply("Please enter a valid number (not zero):");
+    await ctx.reply(await t("add.invalidNumber"));
     return true;
   }
 
   // Maximum 2 decimal places
   const decimalPart = normalizedText.split(".")[1];
   if (decimalPart && decimalPart.length > 2) {
-    await ctx.reply("Maximum 2 decimal places allowed (e.g., 25.50):");
+    await ctx.reply(await t("add.maxDecimals"));
     return true;
   }
 
   // Amount limit
   if (Math.abs(amountMajor) > MAX_AMOUNT) {
-    await ctx.reply(`Amount cannot exceed ${MAX_AMOUNT.toLocaleString()}:`);
+    await ctx.reply(await t("add.maxAmount", { max: MAX_AMOUNT.toLocaleString() }));
     return true;
   }
 
@@ -200,7 +203,7 @@ async function handleAmountInput(
     createdBy,
   });
 
-  await ctx.reply("Enter a description for this transaction:");
+  await ctx.reply(await t("add.enterDescription"));
   return true;
 }
 
@@ -219,7 +222,7 @@ async function handleDescriptionInput(
   const account = await getAccountBySlug(accountSlug);
 
   if (!account) {
-    await ctx.reply("Account not found. Transaction cancelled.");
+    await ctx.reply(await t("add.accountNotFound"));
     await deleteSession(chatId);
     return true;
   }
@@ -248,12 +251,18 @@ async function handleDescriptionInput(
   const newBalance = account.balance + amount;
   const newBalanceStr = formatBalance(newBalance, account.currency);
 
+  const successTitle = await t("add.success");
+  const accountLabel = await t("common.account");
+  const amountLabel = await t("common.amount");
+  const descLabel = await t("common.description");
+  const newBalanceLabel = await t("common.newBalance");
+
   await ctx.reply(
-    "<b>Transaction Added</b>\n\n" +
-      `Account: ${account.name}\n` +
-      `Amount: ${amountStr}\n` +
-      `Description: "${formattedDescription}"\n\n` +
-      `New balance: ${newBalanceStr}`,
+    `<b>${successTitle}</b>\n\n` +
+      `${accountLabel}: ${account.name}\n` +
+      `${amountLabel}: ${amountStr}\n` +
+      `${descLabel}: "${formattedDescription}"\n\n` +
+      `${newBalanceLabel}: ${newBalanceStr}`,
     { parse_mode: "HTML", ...mainKeyboard }
   );
 

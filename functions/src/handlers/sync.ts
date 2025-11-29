@@ -10,6 +10,7 @@ import {
 import { log } from "../services/logger";
 import { toMinorUnits, formatAmount, formatBalance } from "../utils/currency";
 import { mainKeyboard } from "../utils/keyboard";
+import { t } from "../i18n";
 
 /**
  * Handle /sync command
@@ -20,7 +21,7 @@ export async function handleSyncCommand(ctx: Context): Promise<void> {
     const accounts = await getAccounts();
 
     if (accounts.length === 0) {
-      await ctx.reply("No accounts available. Please create accounts first.");
+      await ctx.reply(await t("add.noAccounts"));
       return;
     }
 
@@ -38,10 +39,10 @@ export async function handleSyncCommand(ctx: Context): Promise<void> {
       keyboard.push(buttons.slice(i, i + 2));
     }
 
-    await ctx.reply("Select account to sync:", Markup.inlineKeyboard(keyboard));
+    await ctx.reply(await t("sync.selectAccount"), Markup.inlineKeyboard(keyboard));
   } catch (error) {
     log.error("Error in /sync command", error as Error);
-    await ctx.reply("Failed to load accounts. Please try again.");
+    await ctx.reply(await t("common.failed"));
   }
 }
 
@@ -66,14 +67,14 @@ export async function handleSyncAccountCallback(ctx: Context): Promise<void> {
     const telegramUserId = ctx.from?.id?.toString();
 
     if (!chatId || !telegramUserId) {
-      await ctx.answerCbQuery("Error: Could not identify chat or user.");
+      await ctx.answerCbQuery(await t("common.userError"));
       return;
     }
 
     // Verify account exists
     const account = await getAccountBySlug(slug);
     if (!account) {
-      await ctx.answerCbQuery("Account not found.");
+      await ctx.answerCbQuery(await t("common.accountNotFound"));
       return;
     }
 
@@ -85,19 +86,19 @@ export async function handleSyncAccountCallback(ctx: Context): Promise<void> {
     });
 
     const currentBalanceStr = formatBalance(account.balance, account.currency);
+    const currentBalanceLabel = await t("sync.currentBalance", { balance: currentBalanceStr });
+    const enterActual = await t("sync.enterActual");
 
     await ctx.answerCbQuery();
     await ctx.editMessageText(
-      `<b>${account.name}</b>\n\n` +
-        `Current balance: ${currentBalanceStr}\n\n` +
-        "Enter the actual balance:",
+      `<b>${account.name}</b>\n\n${currentBalanceLabel}\n\n${enterActual}`,
       { parse_mode: "HTML" as const }
     );
   } catch (error) {
     log.error("Error in sync account callback", error as Error, {
       chatId: ctx.chat?.id,
     });
-    await ctx.answerCbQuery("Error occurred. Please try again.");
+    await ctx.answerCbQuery(await t("common.error"));
   }
 }
 
@@ -119,26 +120,26 @@ export async function handleSyncAmountInput(
 
   // Not a number
   if (isNaN(newBalanceMajor)) {
-    await ctx.reply("Please enter a valid number:");
+    await ctx.reply(await t("add.invalidNumber"));
     return true;
   }
 
   // Negative balance not allowed
   if (newBalanceMajor < 0) {
-    await ctx.reply("Balance cannot be negative:");
+    await ctx.reply(await t("sync.negativeNotAllowed"));
     return true;
   }
 
   // Maximum 2 decimal places
   const decimalPart = normalizedText.split(".")[1];
   if (decimalPart && decimalPart.length > 2) {
-    await ctx.reply("Maximum 2 decimal places allowed (e.g., 250.50):");
+    await ctx.reply(await t("add.maxDecimals"));
     return true;
   }
 
   // Amount limit
   if (newBalanceMajor > MAX_AMOUNT) {
-    await ctx.reply(`Balance cannot exceed ${MAX_AMOUNT.toLocaleString()}:`);
+    await ctx.reply(await t("sync.maxBalance", { max: MAX_AMOUNT.toLocaleString() }));
     return true;
   }
 
@@ -146,7 +147,7 @@ export async function handleSyncAmountInput(
   const account = await getAccountBySlug(accountSlug);
 
   if (!account) {
-    await ctx.reply("Account not found. Sync cancelled.");
+    await ctx.reply(await t("sync.cancelled"));
     await deleteSession(chatId);
     return true;
   }
@@ -158,7 +159,7 @@ export async function handleSyncAmountInput(
   // If no change needed
   if (delta === 0) {
     await deleteSession(chatId);
-    await ctx.reply("Balance is already correct. No changes made.", {
+    await ctx.reply(await t("sync.noChange"), {
       ...mainKeyboard,
     });
     return true;
@@ -184,12 +185,18 @@ export async function handleSyncAmountInput(
   const newBalanceStr = formatBalance(newBalanceMinor, account.currency);
   const oldBalanceStr = formatBalance(account.balance, account.currency);
 
+  const successTitle = await t("sync.success");
+  const accountLabel = await t("common.account");
+  const previousLabel = await t("common.previous");
+  const adjustmentLabel = await t("common.adjustment");
+  const newBalanceLabel = await t("common.newBalance");
+
   await ctx.reply(
-    "<b>Balance Synced</b>\n\n" +
-      `Account: ${account.name}\n` +
-      `Previous: ${oldBalanceStr}\n` +
-      `Adjustment: ${deltaStr}\n` +
-      `New balance: ${newBalanceStr}`,
+    `<b>${successTitle}</b>\n\n` +
+      `${accountLabel}: ${account.name}\n` +
+      `${previousLabel}: ${oldBalanceStr}\n` +
+      `${adjustmentLabel}: ${deltaStr}\n` +
+      `${newBalanceLabel}: ${newBalanceStr}`,
     { parse_mode: "HTML", ...mainKeyboard }
   );
 

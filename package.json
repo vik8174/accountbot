@@ -1,0 +1,17 @@
+{
+  "name": "accountbot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Telegram bot for tracking transactions",
+  "scripts": {
+    "build": "npm --prefix functions run build",
+    "lint": "npm --prefix functions run lint",
+    "deploy": "firebase deploy --only functions",
+    "deploy:all": "firebase deploy",
+    "deploy:config": "firebase deploy --only remoteconfig",
+    "deploy:rules": "firebase deploy --only firestore:rules",
+    "deploy:indexes": "firebase deploy --only firestore:indexes",
+    "logs": "firebase functions:log",
+    "serve": "npm --prefix functions run serve"
+  }
+}

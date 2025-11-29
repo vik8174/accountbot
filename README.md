@@ -24,8 +24,10 @@ A Telegram bot for tracking transactions across multiple accounts.
 accountbot/
 ├── README.md
 ├── CLAUDE.md
+├── package.json                  # Root scripts (deploy, build, etc.)
 ├── firebase.json
 ├── firestore.rules
+├── remoteconfig.template.json    # Remote Config template
 ├── .firebaserc
 └── functions/
     ├── package.json
@@ -44,6 +46,10 @@ accountbot/
         ├── utils/
         │   ├── currency.ts       # Currency formatting
         │   └── keyboard.ts       # Telegram keyboard
+        ├── i18n/
+        │   ├── index.ts          # Translation function t()
+        │   ├── uk.ts             # Ukrainian translations
+        │   └── en.ts             # English translations
         └── types/
             └── index.ts          # TypeScript interfaces
 ```
@@ -138,19 +144,32 @@ sessions/{chatId}:
 ## Development
 
 ```bash
-cd functions
-
 # Build TypeScript
 npm run build
+
+# Lint code
+npm run lint
 
 # Local emulator
 npm run serve
 
-# Deploy
+# View logs
+npm run logs
+```
+
+## Deploy
+
+```bash
+# Deploy functions only
 npm run deploy
 
-# Lint
-npm run lint
+# Deploy everything (functions, rules, indexes, config)
+npm run deploy:all
+
+# Deploy specific targets
+npm run deploy:config    # Remote Config
+npm run deploy:rules     # Firestore rules
+npm run deploy:indexes   # Firestore indexes
 ```
 
 ## Firebase CLI
@@ -191,6 +210,37 @@ firebase projects:list
 ```
 
 Project aliases are stored in `.firebaserc`.
+
+## Localization
+
+Bot supports Ukrainian (uk) and English (en) languages via Firebase Remote Config.
+
+### Change Language (without redeploy)
+
+**Option 1: Firebase Console**
+1. Firebase Console → Remote Config
+2. Create parameter `bot_language` with value `uk` or `en`
+3. Publish changes
+
+**Option 2: Firebase CLI**
+```bash
+# Deploy remote config template
+firebase deploy --only remoteconfig
+
+# Or edit and get current config
+firebase remoteconfig:get -o remoteconfig.template.json
+# Edit file, then deploy
+firebase deploy --only remoteconfig
+```
+
+Language cache clears on function cold start.
+
+### Supported Languages
+
+| Code | Language |
+|------|----------|
+| `uk` | Ukrainian (default) |
+| `en` | English |
 
 ## License
 
