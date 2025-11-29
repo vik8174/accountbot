@@ -46,7 +46,7 @@ export interface Transaction {
   type: TransactionType;
   /** Source of transaction: manual (/add) or sync (/sync) */
   source: TransactionSource;
-  timestamp: Timestamp;
+  createdAt: Timestamp;
   reverted: boolean;
   /** Telegram user ID who created this transaction */
   createdBy: string;
@@ -63,7 +63,7 @@ export interface Session {
   accountSlug: string;
   /** Amount in minor units (cents for USD/EUR, kopiykas for UAH) */
   amount?: number;
-  timestamp: Timestamp;
+  createdAt: Timestamp;
   /** Telegram user ID who started this session */
   createdBy: string;
 }

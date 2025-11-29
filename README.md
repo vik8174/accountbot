@@ -127,7 +127,7 @@ transactions/{txId}:
   description?: string       // Description (optional for sync)
   type: "add" | "subtract"
   source: "manual" | "sync"  // Transaction source
-  timestamp: Timestamp
+  createdAt: Timestamp
   reverted: boolean
   createdBy: string          // Telegram user ID
   createdByName: string      // Telegram first name
@@ -139,7 +139,7 @@ sessions/{chatId}:
   step: "amount" | "description" | "sync_amount"
   accountSlug: string        // Account slug
   amount?: number            // Amount in minor units (cents)
-  timestamp: Timestamp
+  createdAt: Timestamp
   createdBy: string          // Telegram user ID who started
 ```
 

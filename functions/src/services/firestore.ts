@@ -80,7 +80,7 @@ export async function createTransaction(
     ...(data.description && { description: data.description }),
     type: data.amount >= 0 ? "add" : "subtract",
     source: data.source,
-    timestamp: Timestamp.now(),
+    createdAt: Timestamp.now(),
     reverted: false,
     createdBy: data.createdBy,
     createdByName: data.createdByName,
@@ -182,7 +182,7 @@ export async function setSession(
   const session: Session = {
     step: data.step,
     accountSlug: data.accountSlug,
-    timestamp: Timestamp.now(),
+    createdAt: Timestamp.now(),
     createdBy: data.createdBy,
     ...(data.amount !== undefined && { amount: data.amount }),
   };

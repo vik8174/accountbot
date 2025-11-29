@@ -68,7 +68,7 @@ Transaction history.
 - `description`: string — optional for sync transactions
 - `type`: "add" | "subtract"
 - `source`: "manual" | "sync" — transaction source
-- `timestamp`: Timestamp
+- `createdAt`: Timestamp
 - `reverted`: boolean
 - `createdBy`: string — Telegram user ID
 - `createdByName`: string — Telegram first name
@@ -78,7 +78,7 @@ Temporary state for interactive flows.
 - `step`: "amount" | "description" | "sync_amount"
 - `accountSlug`: string — account slug
 - `amount?`: number — amount in minor units (cents)
-- `timestamp`: Timestamp
+- `createdAt`: Timestamp
 - `createdBy`: string — Telegram user ID
 
 Note: `createdByName` is not stored in session — it's taken from `ctx.from.first_name` when creating transaction.

@@ -29,7 +29,7 @@ export async function handleHistory(ctx: Context): Promise<void> {
     const MAX_DISPLAY_LENGTH = 30;
     const lines = await Promise.all(
       transactions.map(async (tx) => {
-        const date = await formatDate(tx.timestamp);
+        const date = await formatDate(tx.createdAt);
         const accountName = accountMap.get(tx.accountSlug) || tx.accountSlug;
         const amountStr = formatAmount(tx.amount, tx.currency);
         const fullDescription = tx.source === "sync" ? balanceSyncLabel : (tx.description || "");
