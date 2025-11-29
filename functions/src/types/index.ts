@@ -11,9 +11,9 @@ export type CurrencyCode = "EUR" | "USD" | "UAH";
 export type TransactionType = "add" | "subtract";
 
 /**
- * Session step for interactive /add flow
+ * Session step for interactive flows
  */
-export type SessionStep = "amount" | "description";
+export type SessionStep = "amount" | "description" | "sync_amount";
 
 /**
  * Account document in Firestore

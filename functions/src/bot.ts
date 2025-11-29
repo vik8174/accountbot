@@ -7,6 +7,10 @@ import {
   handleAccountCallback,
   handleSessionMessage,
 } from "./handlers/add";
+import {
+  handleSyncCommand,
+  handleSyncAccountCallback,
+} from "./handlers/sync";
 import { log } from "./services/logger";
 import { mainKeyboard } from "./utils/keyboard";
 
@@ -45,7 +49,8 @@ export function createBot(token: string): Telegraf {
       `<b>AccountBot Help</b>\n\n` +
         `/add — Add a new transaction (interactive)\n` +
         `/balance — View all account balances\n` +
-        `/history — View last 5 transactions`,
+        `/history — View last 5 transactions\n` +
+        `/sync — Sync account balance with actual`,
       { parse_mode: "HTML", ...mainKeyboard }
     );
   });
@@ -54,10 +59,12 @@ export function createBot(token: string): Telegraf {
   bot.command("add", handleAddCommand);
   bot.command("balance", handleBalance);
   bot.command("history", handleHistory);
+  bot.command("sync", handleSyncCommand);
   // bot.command("undo", handleUndo); // Temporarily disabled
 
-  // Callback query handler for account selection
+  // Callback query handlers for account selection
   bot.action(/^add:account:.+$/, handleAccountCallback);
+  bot.action(/^sync:account:.+$/, handleSyncAccountCallback);
 
   // Text message handler for session flow
   bot.on("text", async (ctx, next) => {

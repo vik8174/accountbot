@@ -9,6 +9,7 @@ A Telegram bot for tracking transactions across multiple accounts.
 - `/add` — Add a transaction (interactive account selection, amount, and description)
 - `/balance` — View balance of all accounts
 - `/history` — View recent transaction history
+- `/sync` — Sync account balance with actual (creates adjustment transaction)
 
 ## Tech Stack
 
@@ -36,9 +37,13 @@ accountbot/
         │   ├── add.ts            # /add command handler
         │   ├── balance.ts        # /balance command handler
         │   ├── history.ts        # /history command handler
-        │   └── undo.ts           # /undo command handler
+        │   └── sync.ts           # /sync command handler
         ├── services/
-        │   └── firestore.ts      # Firestore operations
+        │   ├── firestore.ts      # Firestore operations
+        │   └── logger.ts         # Structured logging
+        ├── utils/
+        │   ├── currency.ts       # Currency formatting
+        │   └── keyboard.ts       # Telegram keyboard
         └── types/
             └── index.ts          # TypeScript interfaces
 ```

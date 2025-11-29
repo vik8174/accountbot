@@ -11,6 +11,7 @@ import {
 import { log } from "../services/logger";
 import { toMinorUnits, formatAmount, formatBalance } from "../utils/currency";
 import { mainKeyboard } from "../utils/keyboard";
+import { handleSyncAmountInput } from "./sync";
 
 /**
  * Handle /add command
@@ -140,6 +141,10 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
         telegramUserId,
         text
       );
+    }
+
+    if (session.step === "sync_amount") {
+      return await handleSyncAmountInput(ctx, chatId, session.accountSlug, telegramUserId, text);
     }
 
     return false;
