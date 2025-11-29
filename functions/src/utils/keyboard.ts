@@ -6,5 +6,5 @@ import { Markup } from "telegraf";
  */
 export const mainKeyboard = Markup.keyboard([
   ["/add", "/balance"],
-  ["/history", "/undo"],
+  ["/history"],
 ]).resize();

@@ -1,7 +1,7 @@
 import { Telegraf } from "telegraf";
 import { handleBalance } from "./handlers/balance";
 import { handleHistory } from "./handlers/history";
-import { handleUndo } from "./handlers/undo";
+// import { handleUndo } from "./handlers/undo"; // Temporarily disabled
 import {
   handleAddCommand,
   handleAccountCallback,
@@ -45,8 +45,7 @@ export function createBot(token: string): Telegraf {
       `<b>AccountBot Help</b>\n\n` +
         `/add — Add a new transaction (interactive)\n` +
         `/balance — View all account balances\n` +
-        `/history — View last 5 transactions\n` +
-        `/undo — Revert your last transaction`,
+        `/history — View last 5 transactions`,
       { parse_mode: "HTML", ...mainKeyboard }
     );
   });
@@ -55,7 +54,7 @@ export function createBot(token: string): Telegraf {
   bot.command("add", handleAddCommand);
   bot.command("balance", handleBalance);
   bot.command("history", handleHistory);
-  bot.command("undo", handleUndo);
+  // bot.command("undo", handleUndo); // Temporarily disabled
 
   // Callback query handler for account selection
   bot.action(/^add:account:.+$/, handleAccountCallback);

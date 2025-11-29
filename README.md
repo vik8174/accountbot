@@ -9,7 +9,6 @@ A Telegram bot for tracking transactions across multiple accounts.
 - `/add` — Add a transaction (interactive account selection, amount, and description)
 - `/balance` — View balance of all accounts
 - `/history` — View recent transaction history
-- `/undo` — Revert the last transaction
 
 ## Tech Stack
 
