@@ -28,62 +28,6 @@ Telegram → Webhook → Cloud Function → Telegraf → Firestore
 
 ---
 
-## Development Commands
-
-```bash
-cd functions
-
-# Install dependencies
-npm install
-
-# Build TypeScript
-npm run build
-
-# Local emulator
-npm run serve
-
-# Deploy to Firebase
-npm run deploy
-
-# Lint code
-npm run lint
-```
-
----
-
-## Firestore Collections
-
-### accounts
-Shared accounts. Created manually in Firebase Console.
-- `name`: string — display name
-- `slug`: string — technical ID (vitya_common, cosmos, cash...)
-- `currency`: CurrencyCode — ISO 4217 currency code
-- `balance`: number — balance in minor units (cents)
-
-### transactions
-Transaction history.
-- `accountSlug`: string — account slug
-- `amount`: number — amount in minor units (cents), positive or negative
-- `currency`: CurrencyCode — ISO 4217 currency code
-- `description`: string — optional for sync transactions
-- `type`: "add" | "subtract"
-- `source`: "manual" | "sync" — transaction source
-- `createdAt`: Timestamp
-- `createdById`: string — Telegram user ID
-- `createdByName`: string — Telegram first name
-
-### sessions
-Temporary state for interactive flows.
-- `step`: "amount" | "description" | "sync_amount"
-- `accountSlug`: string — account slug
-- `amount?`: number — amount in minor units (cents)
-- `createdAt`: Timestamp
-- `createdById`: string — Telegram user ID
-
-Note: `createdByName` is not stored in session — it's taken from `ctx.from.first_name` when creating transaction.
-
----
-
 ## Interactive /add Flow
 
 1. User: `/add`
@@ -94,21 +38,6 @@ Note: `createdByName` is not stored in session — it's taken from `ctx.from.fir
 6. Bot: updates session, asks for description
 7. User: enters text
 8. Bot: creates transaction, updates balance, deletes session
-
----
-
-## Secrets
-
-Telegram token stored via Firebase Secrets:
-```bash
-firebase functions:secrets:set TELEGRAM_BOT_TOKEN
-```
-
-Access in code:
-```typescript
-import { defineSecret } from "firebase-functions/params";
-const telegramToken = defineSecret("TELEGRAM_BOT_TOKEN");
-```
 
 ---
 
