@@ -1,6 +1,7 @@
 import { Context } from "telegraf";
 import { getAccounts } from "../services/firestore";
 import { log } from "../services/logger";
+import { formatBalance } from "../utils/currency";
 
 /**
  * Handle /balance command
@@ -20,8 +21,8 @@ export async function handleBalance(ctx: Context): Promise<void> {
 
     // Build table
     const lines = accounts.map((acc) => {
-      const balance = acc.balance >= 0 ? `+${acc.balance}` : `${acc.balance}`;
-      return `${acc.name.padEnd(20)} ${balance} ${acc.currency}`;
+      const balanceStr = formatBalance(acc.balance, acc.currency);
+      return `${acc.name.padEnd(20)} ${balanceStr}`;
     });
 
     const message = `<b>Account Balances</b>\n\n<pre>${lines.join("\n")}</pre>`;

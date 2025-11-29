@@ -9,6 +9,7 @@ import {
   updateAccountBalance,
 } from "../services/firestore";
 import { log } from "../services/logger";
+import { toMinorUnits, formatAmount, formatBalance } from "../utils/currency";
 
 /**
  * Handle /add command
@@ -157,19 +158,22 @@ async function handleAmountInput(
   telegramUserId: string,
   text: string
 ): Promise<boolean> {
-  // Parse amount
-  const amount = parseFloat(text.replace(",", "."));
+  // Parse amount (user enters in major units like 2.50)
+  const amountMajor = parseFloat(text.replace(",", "."));
 
-  if (isNaN(amount) || amount === 0) {
+  if (isNaN(amountMajor) || amountMajor === 0) {
     await ctx.reply("Please enter a valid number (not zero):");
     return true;
   }
+
+  // Convert to minor units (cents) for storage
+  const amountMinor = toMinorUnits(amountMajor);
 
   // Update session to description step
   await setSession(chatId, {
     step: "description",
     accountSlug,
-    amount,
+    amount: amountMinor,
     telegramUserId,
   });
 
@@ -212,16 +216,17 @@ async function handleDescriptionInput(
   // Delete session
   await deleteSession(chatId);
 
-  // Send confirmation
-  const amountStr = amount >= 0 ? `+${amount}` : `${amount}`;
+  // Send confirmation (amount is in minor units)
+  const amountStr = formatAmount(amount, account.currency);
   const newBalance = account.balance + amount;
+  const newBalanceStr = formatBalance(newBalance, account.currency);
 
   await ctx.reply(
     "<b>Transaction Added</b>\n\n" +
       `Account: ${account.name}\n` +
-      `Amount: ${amountStr} ${account.currency}\n` +
+      `Amount: ${amountStr}\n` +
       `Description: "${description}"\n\n` +
-      `New balance: ${newBalance} ${account.currency}`,
+      `New balance: ${newBalanceStr}`,
     { parse_mode: "HTML" }
   );
 

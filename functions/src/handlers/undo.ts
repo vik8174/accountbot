@@ -6,6 +6,7 @@ import {
   getAccounts,
 } from "../services/firestore";
 import { log } from "../services/logger";
+import { formatAmount } from "../utils/currency";
 
 /**
  * Handle /undo command
@@ -46,12 +47,12 @@ export async function handleUndo(ctx: Context): Promise<void> {
     const account = accounts.find((a) => a.slug === lastTx.accountSlug);
     const accountName = account?.name || lastTx.accountSlug;
 
-    const amountStr = lastTx.amount >= 0 ? `+${lastTx.amount}` : `${lastTx.amount}`;
+    const amountStr = formatAmount(lastTx.amount, lastTx.currency);
 
     await ctx.reply(
       "<b>Transaction Reverted</b>\n\n" +
         `Account: ${accountName}\n` +
-        `Amount: ${amountStr} ${lastTx.currency}\n` +
+        `Amount: ${amountStr}\n` +
         `Description: "${lastTx.description}"`,
       { parse_mode: "HTML" }
     );

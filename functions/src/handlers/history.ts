@@ -1,6 +1,7 @@
 import { Context } from "telegraf";
 import { getTransactions, getAccounts } from "../services/firestore";
 import { log } from "../services/logger";
+import { formatAmount } from "../utils/currency";
 
 /**
  * Format date as YYYY-MM-DD HH:mm
@@ -36,8 +37,8 @@ export async function handleHistory(ctx: Context): Promise<void> {
     const lines = transactions.map((tx, index) => {
       const date = formatDate(tx.timestamp);
       const accountName = accountMap.get(tx.accountSlug) || tx.accountSlug;
-      const amount = tx.amount >= 0 ? `+${tx.amount}` : `${tx.amount}`;
-      return `${index + 1}) ${date} — ${accountName} — ${amount} ${tx.currency}\n   "${tx.description}"`;
+      const amountStr = formatAmount(tx.amount, tx.currency);
+      return `${index + 1}) ${date} — ${accountName} — ${amountStr}\n   "${tx.description}"`;
     });
 
     const message = `<b>Recent Transactions</b>\n\n${lines.join("\n\n")}`;
