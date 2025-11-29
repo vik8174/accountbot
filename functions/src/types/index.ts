@@ -25,7 +25,6 @@ export interface Account {
   currency: CurrencyCode;
   /** Balance in minor units (cents for USD/EUR, kopiykas for UAH) */
   balance: number;
-  telegramUserId: string;
 }
 
 /**
@@ -41,7 +40,8 @@ export interface Transaction {
   type: TransactionType;
   timestamp: Timestamp;
   reverted: boolean;
-  telegramUserId: string;
+  /** Telegram user ID who created this transaction */
+  createdBy: string;
 }
 
 /**
@@ -54,7 +54,8 @@ export interface Session {
   /** Amount in minor units (cents for USD/EUR, kopiykas for UAH) */
   amount?: number;
   timestamp: Timestamp;
-  telegramUserId: string;
+  /** Telegram user ID who started this session */
+  createdBy: string;
 }
 
 /**
@@ -67,5 +68,6 @@ export interface CreateTransactionData {
   amount: number;
   currency: CurrencyCode;
   description: string;
-  telegramUserId: string;
+  /** Telegram user ID who created this transaction */
+  createdBy: string;
 }

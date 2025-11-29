@@ -24,16 +24,10 @@ const sessionsRef = db.collection("sessions");
 // ============ ACCOUNTS ============
 
 /**
- * Get all accounts (optionally filtered by owner)
+ * Get all accounts
  */
-export async function getAccounts(telegramUserId?: string): Promise<Account[]> {
-  let query: admin.firestore.Query = accountsRef;
-
-  if (telegramUserId) {
-    query = query.where("telegramUserId", "==", telegramUserId);
-  }
-
-  const snapshot = await query.get();
+export async function getAccounts(): Promise<Account[]> {
+  const snapshot = await accountsRef.get();
   return snapshot.docs.map((doc) => doc.data() as Account);
 }
 
@@ -87,7 +81,7 @@ export async function createTransaction(
     type: data.amount >= 0 ? "add" : "subtract",
     timestamp: Timestamp.now(),
     reverted: false,
-    telegramUserId: data.telegramUserId,
+    createdBy: data.createdBy,
   };
 
   const docRef = await transactionsRef.add(transaction);
@@ -96,19 +90,18 @@ export async function createTransaction(
     transactionId: docRef.id,
     accountSlug: data.accountSlug,
     amount: data.amount,
-    telegramUserId: data.telegramUserId,
+    createdBy: data.createdBy,
   });
 
   return docRef.id;
 }
 
 /**
- * Get transactions (with optional filters)
+ * Get transactions (with optional account filter)
  */
 export async function getTransactions(
   limit: number = 5,
-  accountSlug?: string,
-  telegramUserId?: string
+  accountSlug?: string
 ): Promise<(Transaction & { id: string })[]> {
   let query: admin.firestore.Query = transactionsRef
     .where("reverted", "==", false)
@@ -119,10 +112,6 @@ export async function getTransactions(
     query = query.where("accountSlug", "==", accountSlug);
   }
 
-  if (telegramUserId) {
-    query = query.where("telegramUserId", "==", telegramUserId);
-  }
-
   const snapshot = await query.get();
   return snapshot.docs.map((doc) => ({
     id: doc.id,
@@ -131,13 +120,10 @@ export async function getTransactions(
 }
 
 /**
- * Get the last transaction for a user (regardless of reverted status)
+ * Get the last transaction (regardless of reverted status)
  */
-export async function getLastTransaction(
-  telegramUserId: string
-): Promise<(Transaction & { id: string }) | null> {
+export async function getLastTransaction(): Promise<(Transaction & { id: string }) | null> {
   const snapshot = await transactionsRef
-    .where("telegramUserId", "==", telegramUserId)
     .orderBy("timestamp", "desc")
     .limit(1)
     .get();
@@ -188,7 +174,7 @@ export async function setSession(
     step: SessionStep;
     accountSlug: string;
     amount?: number;
-    telegramUserId: string;
+    createdBy: string;
   }
 ): Promise<void> {
   const session: Session = {
@@ -196,7 +182,7 @@ export async function setSession(
     accountSlug: data.accountSlug,
     amount: data.amount,
     timestamp: Timestamp.now(),
-    telegramUserId: data.telegramUserId,
+    createdBy: data.createdBy,
   };
 
   await sessionsRef.doc(chatId).set(session);

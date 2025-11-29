@@ -50,31 +50,30 @@ npm run lint
 ## Firestore Collections
 
 ### accounts
-User accounts. Created manually in Firebase Console.
+Shared accounts. Created manually in Firebase Console.
 - `name`: string — display name
 - `slug`: string — technical ID (vitya_common, cosmos, cash...)
 - `currency`: CurrencyCode — ISO 4217 currency code
-- `balance`: number
-- `telegramUserId`: string — Telegram user ID
+- `balance`: number — balance in minor units (cents)
 
 ### transactions
 Transaction history.
 - `accountSlug`: string — account slug
-- `amount`: number — amount (positive or negative)
+- `amount`: number — amount in minor units (cents), positive or negative
 - `currency`: CurrencyCode — ISO 4217 currency code
 - `description`: string
 - `type`: "add" | "subtract"
 - `timestamp`: Timestamp
 - `reverted`: boolean
-- `telegramUserId`: string — Telegram user ID
+- `createdBy`: string — Telegram user ID who created the transaction
 
 ### sessions
 Temporary state for interactive /add flow.
 - `step`: "amount" | "description"
 - `accountSlug`: string — account slug
-- `amount?`: number
+- `amount?`: number — amount in minor units (cents)
 - `timestamp`: Timestamp
-- `telegramUserId`: string — Telegram user ID
+- `createdBy`: string — Telegram user ID who started the session
 
 ---
 

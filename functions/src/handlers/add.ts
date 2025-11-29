@@ -81,7 +81,7 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
     await setSession(chatId, {
       step: "amount",
       accountSlug: slug,
-      telegramUserId,
+      createdBy: telegramUserId,
     });
 
     await ctx.answerCbQuery();
@@ -115,7 +115,7 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
     }
 
     // Verify session belongs to this user
-    if (session.telegramUserId !== telegramUserId) {
+    if (session.createdBy !== telegramUserId) {
       await deleteSession(chatId);
       return false;
     }
@@ -155,7 +155,7 @@ async function handleAmountInput(
   ctx: Context,
   chatId: string,
   accountSlug: string,
-  telegramUserId: string,
+  createdBy: string,
   text: string
 ): Promise<boolean> {
   // Parse amount (user enters in major units like 2.50)
@@ -174,7 +174,7 @@ async function handleAmountInput(
     step: "description",
     accountSlug,
     amount: amountMinor,
-    telegramUserId,
+    createdBy,
   });
 
   await ctx.reply("Enter a description for this transaction:");
@@ -189,7 +189,7 @@ async function handleDescriptionInput(
   chatId: string,
   accountSlug: string,
   amount: number,
-  telegramUserId: string,
+  createdBy: string,
   description: string
 ): Promise<boolean> {
   // Get account details
@@ -207,7 +207,7 @@ async function handleDescriptionInput(
     amount,
     currency: account.currency,
     description,
-    telegramUserId,
+    createdBy,
   });
 
   // Update account balance

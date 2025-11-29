@@ -14,15 +14,8 @@ import { formatAmount } from "../utils/currency";
  */
 export async function handleUndo(ctx: Context): Promise<void> {
   try {
-    const telegramUserId = ctx.from?.id?.toString();
-
-    if (!telegramUserId) {
-      await ctx.reply("Could not identify user.");
-      return;
-    }
-
     // Get last transaction
-    const lastTx = await getLastTransaction(telegramUserId);
+    const lastTx = await getLastTransaction();
 
     if (!lastTx) {
       await ctx.reply("No transactions to undo.");
@@ -31,7 +24,7 @@ export async function handleUndo(ctx: Context): Promise<void> {
 
     // Check if already reverted (can only undo once)
     if (lastTx.reverted) {
-      await ctx.reply("You already undid your last transaction.");
+      await ctx.reply("The last transaction was already undone.");
       return;
     }
 
@@ -57,7 +50,7 @@ export async function handleUndo(ctx: Context): Promise<void> {
       { parse_mode: "HTML" }
     );
   } catch (error) {
-    log.error("Error in /undo command", error as Error, { telegramUserId: ctx.from?.id });
+    log.error("Error in /undo command", error as Error);
     await ctx.reply("Failed to undo transaction. Please try again.");
   }
 }

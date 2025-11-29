@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "accountbot-dev",
+    "dev": "accountbot-dev",
+    "prod": "accountbot-prod"
+  }
+}
