@@ -11,6 +11,11 @@ export type CurrencyCode = "EUR" | "USD" | "UAH";
 export type TransactionType = "add" | "subtract";
 
 /**
+ * Transaction source
+ */
+export type TransactionSource = "manual" | "sync";
+
+/**
  * Session step for interactive flows
  */
 export type SessionStep = "amount" | "description" | "sync_amount";
@@ -36,8 +41,11 @@ export interface Transaction {
   /** Amount in minor units (cents for USD/EUR, kopiykas for UAH) */
   amount: number;
   currency: CurrencyCode;
-  description: string;
+  /** Optional for sync transactions */
+  description?: string;
   type: TransactionType;
+  /** Source of transaction: manual (/add) or sync (/sync) */
+  source: TransactionSource;
   timestamp: Timestamp;
   reverted: boolean;
   /** Telegram user ID who created this transaction */
@@ -67,7 +75,10 @@ export interface CreateTransactionData {
   /** Amount in minor units (cents for USD/EUR, kopiykas for UAH) */
   amount: number;
   currency: CurrencyCode;
-  description: string;
+  /** Optional for sync transactions */
+  description?: string;
+  /** Source of transaction: manual (/add) or sync (/sync) */
+  source: TransactionSource;
   /** Telegram user ID who created this transaction */
   createdBy: string;
 }

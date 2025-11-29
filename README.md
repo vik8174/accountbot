@@ -117,8 +117,9 @@ transactions/{txId}:
   accountSlug: string        // Account slug
   amount: number             // Amount in minor units (cents), positive or negative
   currency: string           // ISO 4217 code (EUR, USD, UAH)
-  description: string        // Description
+  description?: string       // Description (optional for sync)
   type: "add" | "subtract"
+  source: "manual" | "sync"  // Transaction source
   timestamp: Timestamp
   reverted: boolean
   createdBy: string          // Telegram user ID who created
@@ -127,7 +128,7 @@ transactions/{txId}:
 ### Collection: `sessions`
 ```
 sessions/{chatId}:
-  step: "amount" | "description"
+  step: "amount" | "description" | "sync_amount"
   accountSlug: string        // Account slug
   amount?: number            // Amount in minor units (cents)
   timestamp: Timestamp

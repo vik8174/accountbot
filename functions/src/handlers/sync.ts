@@ -169,7 +169,7 @@ export async function handleSyncAmountInput(
     accountSlug,
     amount: delta,
     currency: account.currency,
-    description: "Balance sync",
+    source: "sync",
     createdBy,
   });
 

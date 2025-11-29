@@ -233,6 +233,7 @@ async function handleDescriptionInput(
     amount,
     currency: account.currency,
     description: formattedDescription,
+    source: "manual",
     createdBy,
   });
 
