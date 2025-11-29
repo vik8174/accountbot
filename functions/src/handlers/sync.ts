@@ -82,7 +82,7 @@ export async function handleSyncAccountCallback(ctx: Context): Promise<void> {
     await setSession(chatId, {
       step: "sync_amount",
       accountSlug: slug,
-      createdBy: telegramUserId,
+      createdById: telegramUserId,
     });
 
     const currentBalanceStr = formatBalance(account.balance, account.currency);
@@ -109,7 +109,7 @@ export async function handleSyncAmountInput(
   ctx: Context,
   chatId: string,
   accountSlug: string,
-  createdBy: string,
+  createdById: string,
   text: string
 ): Promise<boolean> {
   const MAX_AMOUNT = 1000000;
@@ -172,7 +172,7 @@ export async function handleSyncAmountInput(
     amount: delta,
     currency: account.currency,
     source: "sync",
-    createdBy,
+    createdById,
     createdByName,
   });
 

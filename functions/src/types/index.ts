@@ -49,7 +49,7 @@ export interface Transaction {
   createdAt: Timestamp;
   reverted: boolean;
   /** Telegram user ID who created this transaction */
-  createdBy: string;
+  createdById: string;
   /** Display name of user who created this transaction */
   createdByName: string;
 }
@@ -65,7 +65,7 @@ export interface Session {
   amount?: number;
   createdAt: Timestamp;
   /** Telegram user ID who started this session */
-  createdBy: string;
+  createdById: string;
 }
 
 /**
@@ -82,7 +82,7 @@ export interface CreateTransactionData {
   /** Source of transaction: manual (/add) or sync (/sync) */
   source: TransactionSource;
   /** Telegram user ID who created this transaction */
-  createdBy: string;
+  createdById: string;
   /** Display name of user who created this transaction */
   createdByName: string;
 }

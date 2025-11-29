@@ -82,7 +82,7 @@ export async function createTransaction(
     source: data.source,
     createdAt: Timestamp.now(),
     reverted: false,
-    createdBy: data.createdBy,
+    createdById: data.createdById,
     createdByName: data.createdByName,
   };
 
@@ -92,7 +92,7 @@ export async function createTransaction(
     transactionId: docRef.id,
     accountSlug: data.accountSlug,
     amount: data.amount,
-    createdBy: data.createdBy,
+    createdById: data.createdById,
   });
 
   return docRef.id;
@@ -176,14 +176,14 @@ export async function setSession(
     step: SessionStep;
     accountSlug: string;
     amount?: number;
-    createdBy: string;
+    createdById: string;
   }
 ): Promise<void> {
   const session: Session = {
     step: data.step,
     accountSlug: data.accountSlug,
     createdAt: Timestamp.now(),
-    createdBy: data.createdBy,
+    createdById: data.createdById,
     ...(data.amount !== undefined && { amount: data.amount }),
   };
 

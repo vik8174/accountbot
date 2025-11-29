@@ -129,7 +129,7 @@ transactions/{txId}:
   source: "manual" | "sync"  // Transaction source
   createdAt: Timestamp
   reverted: boolean
-  createdBy: string          // Telegram user ID
+  createdById: string        // Telegram user ID
   createdByName: string      // Telegram first name
 ```
 
@@ -140,7 +140,7 @@ sessions/{chatId}:
   accountSlug: string        // Account slug
   amount?: number            // Amount in minor units (cents)
   createdAt: Timestamp
-  createdBy: string          // Telegram user ID who started
+  createdById: string        // Telegram user ID who started
 ```
 
 ## Development

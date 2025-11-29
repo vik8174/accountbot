@@ -84,7 +84,7 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
     await setSession(chatId, {
       step: "amount",
       accountSlug: slug,
-      createdBy: telegramUserId,
+      createdById: telegramUserId,
     });
 
     const selected = await t("add.selected", { name: account.name });
@@ -120,7 +120,7 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
     }
 
     // Verify session belongs to this user
-    if (session.createdBy !== telegramUserId) {
+    if (session.createdById !== telegramUserId) {
       await deleteSession(chatId);
       return false;
     }
@@ -164,7 +164,7 @@ async function handleAmountInput(
   ctx: Context,
   chatId: string,
   accountSlug: string,
-  createdBy: string,
+  createdById: string,
   text: string
 ): Promise<boolean> {
   const MAX_AMOUNT = 1000000;
@@ -200,7 +200,7 @@ async function handleAmountInput(
     step: "description",
     accountSlug,
     amount: amountMinor,
-    createdBy,
+    createdById,
   });
 
   await ctx.reply(await t("add.enterDescription"));
@@ -215,7 +215,7 @@ async function handleDescriptionInput(
   chatId: string,
   accountSlug: string,
   amount: number,
-  createdBy: string,
+  createdById: string,
   description: string
 ): Promise<boolean> {
   // Get account details
@@ -240,7 +240,7 @@ async function handleDescriptionInput(
     currency: account.currency,
     description: formattedDescription,
     source: "manual",
-    createdBy,
+    createdById,
     createdByName,
   });
 
