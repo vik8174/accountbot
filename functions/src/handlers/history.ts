@@ -26,12 +26,16 @@ export async function handleHistory(ctx: Context): Promise<void> {
     const balanceSyncLabel = await t("history.balanceSync");
 
     // Build block message
+    const MAX_DISPLAY_LENGTH = 30;
     const lines = await Promise.all(
       transactions.map(async (tx) => {
         const date = await formatDate(tx.timestamp);
         const accountName = accountMap.get(tx.accountSlug) || tx.accountSlug;
         const amountStr = formatAmount(tx.amount, tx.currency);
-        const description = tx.source === "sync" ? balanceSyncLabel : tx.description;
+        const fullDescription = tx.source === "sync" ? balanceSyncLabel : (tx.description || "");
+        const description = fullDescription.length > MAX_DISPLAY_LENGTH
+          ? fullDescription.slice(0, MAX_DISPLAY_LENGTH) + "..."
+          : fullDescription;
         const author = tx.createdByName || "—";
         return `┌ ${date}\n└ ${accountName} · ${amountStr} · ${author} · ${description}`;
       })

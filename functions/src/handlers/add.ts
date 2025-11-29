@@ -227,8 +227,10 @@ async function handleDescriptionInput(
     return true;
   }
 
-  // Capitalize first letter
-  const formattedDescription = description.charAt(0).toUpperCase() + description.slice(1);
+  // Capitalize first letter and truncate to max 100 chars
+  const MAX_DESCRIPTION_LENGTH = 100;
+  const formattedDescription = (description.charAt(0).toUpperCase() + description.slice(1))
+    .slice(0, MAX_DESCRIPTION_LENGTH);
   const createdByName = ctx.from?.first_name || "Unknown";
 
   // Create transaction
