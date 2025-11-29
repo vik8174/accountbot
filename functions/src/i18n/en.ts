@@ -63,4 +63,7 @@ export const en = {
     history: "📋 History",
     sync: "🔄 Sync",
   },
+  months: {
+    short: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+  },
 };

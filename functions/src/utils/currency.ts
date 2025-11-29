@@ -7,6 +7,23 @@
  * - UAH: kopiykas (100 kopiykas = 1 hryvnia)
  */
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$",
+  EUR: "€",
+  UAH: "₴",
+};
+
+/**
+ * Format number with thousand separators (Anglo-American format)
+ * @param value Absolute value to format
+ * @returns Formatted string like "1,234.56"
+ */
+function formatNumber(value: number): string {
+  const [intPart, decPart] = Math.abs(value).toFixed(2).split(".");
+  const withThousands = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `${withThousands}.${decPart}`;
+}
+
 /**
  * Convert major units (dollars) to minor units (cents)
  * @param amount Amount in major units (e.g., 2.50 dollars)
@@ -30,7 +47,7 @@ export function toMajorUnits(amount: number): number {
  * @param amountInMinorUnits Amount in cents/kopiykas
  * @param currency Currency code
  * @param showSign Whether to show +/- sign
- * @returns Formatted string like "+2.50 USD" or "-100.00 EUR"
+ * @returns Formatted string like "+25.50 $" or "-1,234.56 €"
  */
 export function formatAmount(
   amountInMinorUnits: number,
@@ -38,26 +55,30 @@ export function formatAmount(
   showSign = true
 ): string {
   const majorUnits = toMajorUnits(amountInMinorUnits);
-  const formatted = majorUnits.toFixed(2);
+  const formatted = formatNumber(majorUnits);
+  const symbol = CURRENCY_SYMBOLS[currency] || currency;
 
-  if (showSign && amountInMinorUnits >= 0) {
-    return `+${formatted} ${currency}`;
+  if (showSign) {
+    const sign = amountInMinorUnits >= 0 ? "+" : "-";
+    return `${sign}${formatted} ${symbol}`;
   }
-  return `${formatted} ${currency}`;
+  const sign = majorUnits < 0 ? "-" : "";
+  return `${sign}${formatted} ${symbol}`;
 }
 
 /**
  * Format balance from minor units for display (always shows sign)
  * @param balanceInMinorUnits Balance in cents/kopiykas
  * @param currency Currency code
- * @returns Formatted string like "+2.50" or "-100.00"
+ * @returns Formatted string like "+1,234.56 ₴" or "-100.00 $"
  */
 export function formatBalance(
   balanceInMinorUnits: number,
   currency: string
 ): string {
   const majorUnits = toMajorUnits(balanceInMinorUnits);
-  const formatted = majorUnits.toFixed(2);
-  const sign = balanceInMinorUnits >= 0 ? "+" : "";
-  return `${sign}${formatted} ${currency}`;
+  const formatted = formatNumber(majorUnits);
+  const symbol = CURRENCY_SYMBOLS[currency] || currency;
+  const sign = balanceInMinorUnits >= 0 ? "+" : "-";
+  return `${sign}${formatted} ${symbol}`;
 }

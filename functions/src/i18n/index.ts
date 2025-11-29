@@ -71,3 +71,24 @@ export async function t(
 
   return value;
 }
+
+/**
+ * Get an array translation by key
+ * @param key - Dot-separated path (e.g., "months.short")
+ * @returns String array or empty array if not found
+ */
+export async function tArray(key: string): Promise<string[]> {
+  const lang = await getLanguage();
+
+  const keys = key.split(".");
+  let value: unknown = translations[lang];
+  for (const k of keys) {
+    value = (value as Record<string, unknown>)?.[k];
+  }
+
+  if (Array.isArray(value)) {
+    return value as string[];
+  }
+
+  return [];
+}
