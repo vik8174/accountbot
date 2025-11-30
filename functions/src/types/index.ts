@@ -51,6 +51,8 @@ export interface Transaction {
   createdById: string;
   /** Display name of user who created this transaction */
   createdByName: string;
+  /** Account balance after this transaction (in minor units) */
+  balanceAfter: number;
 }
 
 /**

@@ -68,33 +68,60 @@ export async function updateAccountBalance(
 // ============ TRANSACTIONS ============
 
 /**
- * Create a new transaction
+ * Create transaction and update balance atomically.
+ * Ensures data consistency by using Firestore transaction.
+ * Returns transaction ID.
  */
-export async function createTransaction(
+export async function createTransactionAndUpdateBalance(
   data: CreateTransactionData
 ): Promise<string> {
-  const transaction: Transaction = {
-    accountSlug: data.accountSlug,
-    amount: data.amount,
-    currency: data.currency,
-    ...(data.description && { description: data.description }),
-    type: data.amount >= 0 ? "add" : "subtract",
-    source: data.source,
-    createdAt: Timestamp.now(),
-    createdById: data.createdById,
-    createdByName: data.createdByName,
-  };
+  const result = await db.runTransaction(async (firestoreTransaction) => {
+    // 1. Get current account
+    const accountSnapshot = await firestoreTransaction.get(
+      accountsRef.where("slug", "==", data.accountSlug).limit(1)
+    );
 
-  const docRef = await transactionsRef.add(transaction);
+    if (accountSnapshot.empty) {
+      throw new Error(`Account not found: ${data.accountSlug}`);
+    }
 
-  log.info("Transaction created", {
-    transactionId: docRef.id,
+    const accountDoc = accountSnapshot.docs[0];
+    const account = accountDoc.data() as Account;
+
+    // 2. Calculate new balance
+    const balanceAfter = account.balance + data.amount;
+
+    // 3. Create transaction document with balanceAfter
+    const txnData: Transaction = {
+      accountSlug: data.accountSlug,
+      amount: data.amount,
+      currency: data.currency,
+      ...(data.description && { description: data.description }),
+      type: data.amount >= 0 ? "add" : "subtract",
+      source: data.source,
+      createdAt: Timestamp.now(),
+      createdById: data.createdById,
+      createdByName: data.createdByName,
+      balanceAfter,
+    };
+
+    const newTxnRef = transactionsRef.doc();
+    firestoreTransaction.set(newTxnRef, txnData);
+
+    // 4. Update account balance
+    firestoreTransaction.update(accountDoc.ref, { balance: balanceAfter });
+
+    return newTxnRef.id;
+  });
+
+  log.info("Transaction created with balance update", {
+    transactionId: result,
     accountSlug: data.accountSlug,
     amount: data.amount,
     createdById: data.createdById,
   });
 
-  return docRef.id;
+  return result;
 }
 
 /**
@@ -184,4 +211,59 @@ export async function addMessageIdToSession(
  */
 export async function deleteSession(sessionKey: string): Promise<void> {
   await sessionsRef.doc(sessionKey).delete();
+}
+
+// ============ DATA INTEGRITY ============
+
+/**
+ * Verify account data integrity by checking:
+ * 1. Each transaction's balanceAfter matches running total
+ * 2. Final balance matches account balance
+ *
+ * Returns true if all checks pass, false otherwise.
+ */
+export async function verifyAccountIntegrity(slug: string): Promise<boolean> {
+  const account = await getAccountBySlug(slug);
+  if (!account) {
+    log.error("Account not found for integrity check", undefined, { slug });
+    return false;
+  }
+
+  const snapshot = await transactionsRef
+    .where("accountSlug", "==", slug)
+    .orderBy("createdAt", "asc")
+    .get();
+
+  let calculatedBalance = 0;
+
+  for (const doc of snapshot.docs) {
+    const txn = doc.data() as Transaction;
+    calculatedBalance += txn.amount;
+
+    if (txn.balanceAfter !== calculatedBalance) {
+      log.error("Integrity mismatch: balanceAfter does not match", undefined, {
+        transactionId: doc.id,
+        expected: calculatedBalance,
+        actual: txn.balanceAfter,
+      });
+      return false;
+    }
+  }
+
+  // Verify final balance matches account balance
+  if (calculatedBalance !== account.balance) {
+    log.error("Integrity mismatch: account balance does not match sum", undefined, {
+      slug,
+      accountBalance: account.balance,
+      calculatedBalance,
+    });
+    return false;
+  }
+
+  log.info("Account integrity verified", {
+    slug,
+    transactionCount: snapshot.docs.length,
+  });
+
+  return true;
 }

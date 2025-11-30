@@ -38,7 +38,7 @@ Telegram → Webhook → Cloud Function → Telegraf → Firestore
 5. User: enters number
 6. Bot: updates session, asks for description
 7. User: enters text
-8. Bot: creates transaction, updates balance, deletes all intermediate messages, shows result
+8. Bot: creates transaction with `balanceAfter`, updates balance atomically, deletes all intermediate messages, shows result
 
 ### Session Key
 Sessions use `chatId:userId` as key to support multiple users in group chats simultaneously.
@@ -68,6 +68,48 @@ Manually in Firebase Console: Firestore → accounts → Add document
 
 ### Change message formatting
 Edit the corresponding handler in `handlers/`
+
+### Verify data integrity
+Use `verifyAccountIntegrity(slug)` from `services/firestore.ts` to check account consistency.
+
+---
+
+## Data Model
+
+### Transaction
+```typescript
+interface Transaction {
+  accountSlug: string;
+  amount: number;           // Minor units (cents/kopiykas)
+  currency: CurrencyCode;
+  description?: string;     // Optional for sync
+  type: "add" | "subtract"; // Inferred from amount sign
+  source: "manual" | "sync";
+  createdAt: Timestamp;
+  createdById: string;
+  createdByName: string;
+  balanceAfter: number;     // Account balance after transaction (minor units)
+}
+```
+
+### Account
+```typescript
+interface Account {
+  name: string;
+  slug: string;
+  currency: CurrencyCode;
+  balance: number;  // Denormalized, in minor units
+}
+```
+
+### Atomic Transaction Creation
+Transactions are created using `createTransactionAndUpdateBalance()` which:
+1. Reads current account balance
+2. Calculates new balance
+3. Writes transaction with `balanceAfter`
+4. Updates account balance
+
+All operations are atomic (Firestore Transaction), ensuring data consistency.
 
 ---
 

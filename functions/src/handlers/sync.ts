@@ -5,8 +5,7 @@ import {
   setSession,
   getSessionKey,
   deleteSession,
-  createTransaction,
-  updateAccountBalance,
+  createTransactionAndUpdateBalance,
 } from "../services/firestore";
 import { log } from "../services/logger";
 import { toMinorUnits, formatAmount, formatBalance } from "../utils/currency";
@@ -187,9 +186,9 @@ export async function handleSyncAmountInput(
     return true;
   }
 
-  // Create adjustment transaction
+  // Create adjustment transaction and update balance atomically
   const createdByName = ctx.from?.first_name || "Unknown";
-  await createTransaction({
+  await createTransactionAndUpdateBalance({
     accountSlug,
     amount: delta,
     currency: account.currency,
@@ -197,9 +196,6 @@ export async function handleSyncAmountInput(
     createdById,
     createdByName,
   });
-
-  // Update account balance
-  await updateAccountBalance(accountSlug, delta);
 
   // Delete session
   await deleteSession(sessionKey);
