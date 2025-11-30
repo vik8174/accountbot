@@ -30,11 +30,11 @@ export async function handleBalance(ctx: Context): Promise<void> {
     // Build block list
     const lines = accounts.map((acc) => {
       const balanceStr = formatBalance(acc.balance, acc.currency);
-      return `${acc.name}:\n  ${balanceStr}`;
+      return `${acc.name} ${balanceStr}`;
     });
 
     const title = await t("balance.title");
-    const message = `<b>💰 ${title}</b>\n\n${lines.join("\n\n")}`;
+    const message = `<b>💰 ${title}</b>\n\n${lines.join("\n")}`;
 
     await ctx.telegram.sendMessage(ctx.chat!.id, message, {
       parse_mode: "HTML",
