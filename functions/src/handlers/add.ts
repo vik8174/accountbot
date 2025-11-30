@@ -214,7 +214,8 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
         sessionKey,
         session.accountSlug,
         telegramUserId,
-        text
+        text,
+        session.messageIds || []
       );
     }
 

@@ -83,12 +83,22 @@ export async function handleSyncAccountCallback(ctx: Context): Promise<void> {
       return;
     }
 
-    // Create session for sync
+    // Collect message IDs to delete later (excluding first command message)
+    const messageIds: number[] = [];
+
+    // Get inline keyboard message ID (will be edited, then deleted)
+    const callbackMessage = ctx.callbackQuery.message;
+    if (callbackMessage?.message_id) {
+      messageIds.push(callbackMessage.message_id);
+    }
+
+    // Create session for sync with message IDs
     const sessionKey = getSessionKey(chatId, telegramUserId);
     await setSession(sessionKey, {
       step: "sync_amount",
       accountSlug: slug,
       createdById: telegramUserId,
+      messageIds,
     });
 
     const currentBalanceStr = formatBalance(account.balance, account.currency);
@@ -116,9 +126,15 @@ export async function handleSyncAmountInput(
   sessionKey: string,
   accountSlug: string,
   createdById: string,
-  text: string
+  text: string,
+  messageIds: number[] = []
 ): Promise<boolean> {
   const MAX_AMOUNT = 1000000;
+
+  // Save user's amount message ID
+  const userMessageId = ctx.message && "message_id" in ctx.message
+    ? ctx.message.message_id
+    : null;
 
   // Parse amount (user enters in major units like 250.00)
   const normalizedText = text.replace(",", ".");
@@ -187,6 +203,14 @@ export async function handleSyncAmountInput(
 
   // Delete session
   await deleteSession(sessionKey);
+
+  // Delete all intermediate messages
+  const allMessageIds = userMessageId ? [...messageIds, userMessageId] : messageIds;
+  for (const msgId of allMessageIds) {
+    try {
+      await ctx.telegram.deleteMessage(ctx.chat!.id, msgId);
+    } catch { /* ignore - message might already be deleted */ }
+  }
 
   // Send confirmation
   const deltaStr = formatAmount(delta, account.currency);
