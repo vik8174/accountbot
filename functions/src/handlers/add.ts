@@ -16,11 +16,52 @@ import { handleSyncAmountInput } from "./sync";
 import { t } from "../i18n";
 
 /**
+ * Cleanup active session and delete intermediate messages
+ * Called when user starts a new command while /add flow is in progress
+ */
+export async function cleanupSession(ctx: Context): Promise<void> {
+  try {
+    const chatId = ctx.chat?.id?.toString();
+    const telegramUserId = ctx.from?.id?.toString();
+
+    if (!chatId || !telegramUserId) {
+      return;
+    }
+
+    const sessionKey = getSessionKey(chatId, telegramUserId);
+    const session = await getSession(sessionKey);
+
+    if (!session) {
+      return;
+    }
+
+    // Delete all intermediate messages
+    if (session.messageIds && session.messageIds.length > 0) {
+      for (const msgId of session.messageIds) {
+        try {
+          await ctx.telegram.deleteMessage(ctx.chat!.id, msgId);
+        } catch { /* ignore - message might already be deleted */ }
+      }
+    }
+
+    // Delete session
+    await deleteSession(sessionKey);
+  } catch (error) {
+    log.error("Error cleaning up session", error as Error, {
+      chatId: ctx.chat?.id,
+    });
+  }
+}
+
+/**
  * Handle /add command
  * Shows inline keyboard with accounts to select
  */
 export async function handleAddCommand(ctx: Context): Promise<void> {
   try {
+    // Cleanup any existing session (e.g., if user started new /add while previous was in progress)
+    await cleanupSession(ctx);
+
     const accounts = await getAccounts();
 
     if (accounts.length === 0) {

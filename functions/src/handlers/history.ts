@@ -4,6 +4,7 @@ import { log } from "../services/logger";
 import { formatAmount } from "../utils/currency";
 import { formatDate } from "../utils/date";
 import { t } from "../i18n";
+import { cleanupSession } from "./add";
 
 /**
  * Handle /history command
@@ -11,6 +12,9 @@ import { t } from "../i18n";
  */
 export async function handleHistory(ctx: Context): Promise<void> {
   try {
+    // Cleanup any active /add session
+    await cleanupSession(ctx);
+
     const transactions = await getTransactions(5);
 
     if (transactions.length === 0) {

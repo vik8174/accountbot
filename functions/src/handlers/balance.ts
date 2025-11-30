@@ -3,6 +3,7 @@ import { getAccounts } from "../services/firestore";
 import { log } from "../services/logger";
 import { formatBalance } from "../utils/currency";
 import { t } from "../i18n";
+import { cleanupSession } from "./add";
 
 /**
  * Handle /balance command
@@ -10,6 +11,9 @@ import { t } from "../i18n";
  */
 export async function handleBalance(ctx: Context): Promise<void> {
   try {
+    // Cleanup any active /add session
+    await cleanupSession(ctx);
+
     const accounts = await getAccounts();
 
     if (accounts.length === 0) {

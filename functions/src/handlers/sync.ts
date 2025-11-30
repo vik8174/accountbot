@@ -12,6 +12,7 @@ import { log } from "../services/logger";
 import { toMinorUnits, formatAmount, formatBalance } from "../utils/currency";
 import { getMainKeyboard } from "../utils/keyboard";
 import { t } from "../i18n";
+import { cleanupSession } from "./add";
 
 /**
  * Handle /sync command
@@ -19,6 +20,9 @@ import { t } from "../i18n";
  */
 export async function handleSyncCommand(ctx: Context): Promise<void> {
   try {
+    // Cleanup any active /add session
+    await cleanupSession(ctx);
+
     const accounts = await getAccounts();
 
     if (accounts.length === 0) {
