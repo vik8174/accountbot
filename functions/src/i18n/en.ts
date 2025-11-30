@@ -4,6 +4,8 @@
 export const en = {
   start: {
     welcome: "Hello, {name}! Welcome to AccountBot.",
+    commands: "Available commands:",
+    keyboardHint: "Or use the keyboard below 👇",
   },
   help: {
     title: "AccountBot Help",

@@ -37,10 +37,23 @@ export function createBot(token: string): Telegraf {
   bot.start(async (ctx) => {
     const name = ctx.from.first_name || "User";
     const welcome = await t("start.welcome", { name });
-    await ctx.telegram.sendMessage(ctx.chat.id, welcome, {
-      parse_mode: "HTML",
-      ...(await getMainKeyboard()),
-    });
+    const commands = await t("start.commands");
+    const add = await t("help.add");
+    const balance = await t("help.balance");
+    const history = await t("help.history");
+    const sync = await t("help.sync");
+    const keyboardHint = await t("start.keyboardHint");
+
+    await ctx.telegram.sendMessage(
+      ctx.chat.id,
+      `${welcome}\n\n` +
+        `<b>${commands}</b>\n${add}\n${balance}\n${history}\n${sync}\n\n` +
+        `${keyboardHint}`,
+      {
+        parse_mode: "HTML",
+        ...(await getMainKeyboard()),
+      }
+    );
   });
 
   // /help command
