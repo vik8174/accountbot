@@ -4,6 +4,7 @@ import {
   getAccountBySlug,
   setSession,
   getSession,
+  getSessionKey,
   deleteSession,
   createTransaction,
   updateAccountBalance,
@@ -107,7 +108,8 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
     }
 
     // Create session with message IDs
-    await setSession(chatId, {
+    const sessionKey = getSessionKey(chatId, telegramUserId);
+    await setSession(sessionKey, {
       step: "amount",
       accountSlug: slug,
       createdById: telegramUserId,
@@ -141,16 +143,11 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
       return false;
     }
 
-    // Check for active session
-    const session = await getSession(chatId);
+    // Check for active session (using chatId:userId key)
+    const sessionKey = getSessionKey(chatId, telegramUserId);
+    const session = await getSession(sessionKey);
 
     if (!session) {
-      return false;
-    }
-
-    // Verify session belongs to this user
-    if (session.createdById !== telegramUserId) {
-      await deleteSession(chatId);
       return false;
     }
 
@@ -163,7 +160,7 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
     if (session.step === "amount") {
       return await handleAmountInput(
         ctx,
-        chatId,
+        sessionKey,
         session.accountSlug,
         telegramUserId,
         text,
@@ -174,7 +171,7 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
     if (session.step === "description") {
       return await handleDescriptionInput(
         ctx,
-        chatId,
+        sessionKey,
         session.accountSlug,
         session.amount!,
         telegramUserId,
@@ -186,7 +183,7 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
     if (session.step === "sync_amount") {
       return await handleSyncAmountInput(
         ctx,
-        chatId,
+        sessionKey,
         session.accountSlug,
         telegramUserId,
         text
@@ -207,7 +204,7 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
  */
 async function handleAmountInput(
   ctx: Context,
-  chatId: string,
+  sessionKey: string,
   accountSlug: string,
   createdById: string,
   text: string,
@@ -262,7 +259,7 @@ async function handleAmountInput(
   updatedMessageIds.push(botResponse.message_id);
 
   // Update session to description step with all message IDs
-  await setSession(chatId, {
+  await setSession(sessionKey, {
     step: "description",
     accountSlug,
     amount: amountMinor,
@@ -278,7 +275,7 @@ async function handleAmountInput(
  */
 async function handleDescriptionInput(
   ctx: Context,
-  chatId: string,
+  sessionKey: string,
   accountSlug: string,
   amount: number,
   createdById: string,
@@ -298,7 +295,7 @@ async function handleDescriptionInput(
       ctx.chat!.id,
       await t("add.accountNotFound")
     );
-    await deleteSession(chatId);
+    await deleteSession(sessionKey);
     return true;
   }
 
@@ -324,7 +321,7 @@ async function handleDescriptionInput(
   await updateAccountBalance(accountSlug, amount);
 
   // Delete session
-  await deleteSession(chatId);
+  await deleteSession(sessionKey);
 
   // Delete all intermediate messages
   const allMessageIds = userMessageId ? [...messageIds, userMessageId] : messageIds;

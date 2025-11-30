@@ -122,10 +122,18 @@ export async function getTransactions(
 // ============ SESSIONS ============
 
 /**
- * Get active session for a chat
+ * Generate session key for a user in a chat
+ * Uses chatId:userId to support multiple users in group chats
  */
-export async function getSession(chatId: string): Promise<Session | null> {
-  const doc = await sessionsRef.doc(chatId).get();
+export function getSessionKey(chatId: string, userId: string): string {
+  return `${chatId}:${userId}`;
+}
+
+/**
+ * Get active session for a user in a chat
+ */
+export async function getSession(sessionKey: string): Promise<Session | null> {
+  const doc = await sessionsRef.doc(sessionKey).get();
 
   if (!doc.exists) {
     return null;
@@ -138,7 +146,7 @@ export async function getSession(chatId: string): Promise<Session | null> {
  * Create or update a session
  */
 export async function setSession(
-  chatId: string,
+  sessionKey: string,
   data: {
     step: SessionStep;
     accountSlug: string;
@@ -156,17 +164,17 @@ export async function setSession(
     ...(data.messageIds && { messageIds: data.messageIds }),
   };
 
-  await sessionsRef.doc(chatId).set(session);
+  await sessionsRef.doc(sessionKey).set(session);
 }
 
 /**
  * Add message ID to session for later cleanup
  */
 export async function addMessageIdToSession(
-  chatId: string,
+  sessionKey: string,
   messageId: number
 ): Promise<void> {
-  await sessionsRef.doc(chatId).update({
+  await sessionsRef.doc(sessionKey).update({
     messageIds: admin.firestore.FieldValue.arrayUnion(messageId),
   });
 }
@@ -174,6 +182,6 @@ export async function addMessageIdToSession(
 /**
  * Delete a session
  */
-export async function deleteSession(chatId: string): Promise<void> {
-  await sessionsRef.doc(chatId).delete();
+export async function deleteSession(sessionKey: string): Promise<void> {
+  await sessionsRef.doc(sessionKey).delete();
 }

@@ -3,6 +3,7 @@ import {
   getAccounts,
   getAccountBySlug,
   setSession,
+  getSessionKey,
   deleteSession,
   createTransaction,
   updateAccountBalance,
@@ -80,7 +81,8 @@ export async function handleSyncAccountCallback(ctx: Context): Promise<void> {
     }
 
     // Create session for sync
-    await setSession(chatId, {
+    const sessionKey = getSessionKey(chatId, telegramUserId);
+    await setSession(sessionKey, {
       step: "sync_amount",
       accountSlug: slug,
       createdById: telegramUserId,
@@ -108,7 +110,7 @@ export async function handleSyncAccountCallback(ctx: Context): Promise<void> {
  */
 export async function handleSyncAmountInput(
   ctx: Context,
-  chatId: string,
+  sessionKey: string,
   accountSlug: string,
   createdById: string,
   text: string
@@ -149,7 +151,7 @@ export async function handleSyncAmountInput(
 
   if (!account) {
     await ctx.telegram.sendMessage(ctx.chat!.id, await t("sync.cancelled"));
-    await deleteSession(chatId);
+    await deleteSession(sessionKey);
     return true;
   }
 
@@ -159,7 +161,7 @@ export async function handleSyncAmountInput(
 
   // If no change needed
   if (delta === 0) {
-    await deleteSession(chatId);
+    await deleteSession(sessionKey);
     await ctx.telegram.sendMessage(ctx.chat!.id, await t("sync.noChange"), {
       ...(await getMainKeyboard()),
     });
@@ -181,7 +183,7 @@ export async function handleSyncAmountInput(
   await updateAccountBalance(accountSlug, delta);
 
   // Delete session
-  await deleteSession(chatId);
+  await deleteSession(sessionKey);
 
   // Send confirmation
   const deltaStr = formatAmount(delta, account.currency);
