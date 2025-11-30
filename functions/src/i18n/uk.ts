@@ -4,7 +4,6 @@
 export const uk = {
   start: {
     welcome: "Привіт, {name}! Ласкаво просимо до AccountBot.",
-    tagline: "Просто. Швидко. Точно.",
   },
   help: {
     title: "Допомога AccountBot",

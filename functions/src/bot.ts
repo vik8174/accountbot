@@ -37,8 +37,7 @@ export function createBot(token: string): Telegraf {
   bot.start(async (ctx) => {
     const name = ctx.from.first_name || "User";
     const welcome = await t("start.welcome", { name });
-    const tagline = await t("start.tagline");
-    await ctx.telegram.sendMessage(ctx.chat.id, `${welcome}\n\n<i>${tagline}</i>`, {
+    await ctx.telegram.sendMessage(ctx.chat.id, welcome, {
       parse_mode: "HTML",
       ...(await getMainKeyboard()),
     });
