@@ -42,18 +42,10 @@ export async function handleAddCommand(ctx: Context): Promise<void> {
       keyboard.push(buttons.slice(i, i + 2));
     }
 
-    // Get user's command message ID to pass it via reply
-    const userMessageId = ctx.message && "message_id" in ctx.message
-      ? ctx.message.message_id
-      : undefined;
-
     await ctx.telegram.sendMessage(
       ctx.chat!.id,
       await t("add.selectAccount"),
-      {
-        ...Markup.inlineKeyboard(keyboard),
-        reply_parameters: userMessageId ? { message_id: userMessageId } : undefined,
-      }
+      Markup.inlineKeyboard(keyboard)
     );
   } catch (error) {
     log.error("Error in /add command", error as Error);
@@ -93,16 +85,11 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
       return;
     }
 
-    // Collect message IDs to delete later
+    // Collect message IDs to delete later (excluding first command message)
     const messageIds: number[] = [];
 
-    // Get user's original command message ID (from reply_to_message)
+    // Get inline keyboard message ID (will be edited, then deleted)
     const callbackMessage = ctx.callbackQuery.message;
-    if (callbackMessage && "reply_to_message" in callbackMessage && callbackMessage.reply_to_message) {
-      messageIds.push(callbackMessage.reply_to_message.message_id);
-    }
-
-    // Get inline keyboard message ID
     if (callbackMessage?.message_id) {
       messageIds.push(callbackMessage.message_id);
     }
