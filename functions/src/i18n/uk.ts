@@ -3,7 +3,7 @@
  */
 export const uk = {
   start: {
-    welcome: "Привіт, {name}! Ласкаво просимо до AccountBot.",
+    welcome: "Привіт, {name}! Ласкаво прошу до AccountBot.",
   },
   help: {
     title: "Допомога AccountBot",
@@ -13,11 +13,11 @@ export const uk = {
     sync: "/sync — Синхронізувати баланс",
   },
   add: {
-    selectAccount: "Оберіть рахунок:",
+    selectAccount: "Обери рахунок:",
     noAccounts: "Немає доступних рахунків.",
-    enterAmount: "Введіть суму (додатню або від'ємну):",
-    enterDescription: "Введіть опис транзакції:",
-    invalidNumber: "Введіть коректне число (не нуль):",
+    enterAmount: "Введи суму (додатню або від'ємну):",
+    enterDescription: "Введи опис транзакції:",
+    invalidNumber: "Введи коректне число (не нуль):",
     maxDecimals: "Максимум 2 знаки після коми (напр. 25.50):",
     maxAmount: "Сума не може перевищувати {max}:",
     success: "Транзакцію додано",
@@ -25,9 +25,9 @@ export const uk = {
     selected: "Обрано: <b>{name}</b>",
   },
   sync: {
-    selectAccount: "Оберіть рахунок для синхронізації:",
+    selectAccount: "Обери рахунок для синхронізації:",
     currentBalance: "Поточний баланс: {balance}",
-    enterActual: "Введіть фактичний баланс:",
+    enterActual: "Введи фактичний баланс:",
     negativeNotAllowed: "Баланс не може бути від'ємним:",
     noChange: "Баланс вже коректний. Змін не внесено.",
     success: "Баланс синхронізовано",
@@ -51,8 +51,8 @@ export const uk = {
     newBalance: "Новий баланс",
     previous: "Попередній",
     adjustment: "Коригування",
-    error: "Помилка. Спробуйте ще раз.",
-    failed: "Не вдалося завантажити. Спробуйте ще раз.",
+    error: "Помилка. Спробуй ще раз.",
+    failed: "Не вдалося завантажити. Спробуй ще раз.",
     userError: "Помилка: не вдалося ідентифікувати чат або користувача.",
     accountNotFound: "Рахунок не знайдено.",
   },
