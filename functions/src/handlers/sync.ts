@@ -221,10 +221,10 @@ export async function handleSyncAmountInput(
   await ctx.telegram.sendMessage(
     ctx.chat!.id,
     `<b>✅ ${successTitle}</b>\n\n` +
-      `${account.name}:\n` +
-      `  ${previousLabel}: ${oldBalanceStr}\n` +
-      `  ${adjustmentLabel}: ${deltaStr}\n` +
-      `  ${newBalanceLabel}: ${newBalanceStr}`,
+      `${account.name}\n` +
+      `${previousLabel} ${oldBalanceStr}\n` +
+      `${adjustmentLabel} ${deltaStr}\n` +
+      `${newBalanceLabel} ${newBalanceStr}`,
     { parse_mode: "HTML", ...(await getMainKeyboard()) }
   );
 
