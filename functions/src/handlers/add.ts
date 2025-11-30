@@ -41,7 +41,11 @@ export async function handleAddCommand(ctx: Context): Promise<void> {
       keyboard.push(buttons.slice(i, i + 2));
     }
 
-    await ctx.telegram.sendMessage(ctx.chat!.id, await t("add.selectAccount"), Markup.inlineKeyboard(keyboard));
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("add.selectAccount"),
+      Markup.inlineKeyboard(keyboard)
+    );
   } catch (error) {
     log.error("Error in /add command", error as Error);
     await ctx.telegram.sendMessage(ctx.chat!.id, await t("common.failed"));
@@ -95,7 +99,9 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
       parse_mode: "HTML",
     });
   } catch (error) {
-    log.error("Error in account callback", error as Error, { chatId: ctx.chat?.id });
+    log.error("Error in account callback", error as Error, {
+      chatId: ctx.chat?.id,
+    });
     await ctx.answerCbQuery(await t("common.error"));
   }
 }
@@ -125,14 +131,20 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
       return false;
     }
 
-    const text = (ctx.message && "text" in ctx.message) ? ctx.message.text : null;
+    const text = ctx.message && "text" in ctx.message ? ctx.message.text : null;
 
     if (!text) {
       return false;
     }
 
     if (session.step === "amount") {
-      return await handleAmountInput(ctx, chatId, session.accountSlug, telegramUserId, text);
+      return await handleAmountInput(
+        ctx,
+        chatId,
+        session.accountSlug,
+        telegramUserId,
+        text
+      );
     }
 
     if (session.step === "description") {
@@ -147,12 +159,20 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
     }
 
     if (session.step === "sync_amount") {
-      return await handleSyncAmountInput(ctx, chatId, session.accountSlug, telegramUserId, text);
+      return await handleSyncAmountInput(
+        ctx,
+        chatId,
+        session.accountSlug,
+        telegramUserId,
+        text
+      );
     }
 
     return false;
   } catch (error) {
-    log.error("Error handling session message", error as Error, { chatId: ctx.chat?.id });
+    log.error("Error handling session message", error as Error, {
+      chatId: ctx.chat?.id,
+    });
     return false;
   }
 }
@@ -188,7 +208,10 @@ async function handleAmountInput(
 
   // Amount limit
   if (Math.abs(amountMajor) > MAX_AMOUNT) {
-    await ctx.telegram.sendMessage(ctx.chat!.id, await t("add.maxAmount", { max: MAX_AMOUNT.toLocaleString() }));
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("add.maxAmount", { max: MAX_AMOUNT.toLocaleString() })
+    );
     return true;
   }
 
@@ -222,15 +245,19 @@ async function handleDescriptionInput(
   const account = await getAccountBySlug(accountSlug);
 
   if (!account) {
-    await ctx.telegram.sendMessage(ctx.chat!.id, await t("add.accountNotFound"));
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("add.accountNotFound")
+    );
     await deleteSession(chatId);
     return true;
   }
 
   // Capitalize first letter and truncate to max 100 chars
   const MAX_DESCRIPTION_LENGTH = 100;
-  const formattedDescription = (description.charAt(0).toUpperCase() + description.slice(1))
-    .slice(0, MAX_DESCRIPTION_LENGTH);
+  const formattedDescription = (
+    description.charAt(0).toUpperCase() + description.slice(1)
+  ).slice(0, MAX_DESCRIPTION_LENGTH);
   const createdByName = ctx.from?.first_name || "Unknown";
 
   // Create transaction

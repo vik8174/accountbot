@@ -18,6 +18,7 @@ import { t } from "../i18n";
  */
 export async function handleSyncCommand(ctx: Context): Promise<void> {
   try {
+    try { await ctx.deleteMessage(); } catch { /* ignore */ }
     const accounts = await getAccounts();
 
     if (accounts.length === 0) {

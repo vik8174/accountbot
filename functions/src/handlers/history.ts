@@ -11,10 +11,14 @@ import { t } from "../i18n";
  */
 export async function handleHistory(ctx: Context): Promise<void> {
   try {
+    try { await ctx.deleteMessage(); } catch { /* ignore */ }
     const transactions = await getTransactions(5);
 
     if (transactions.length === 0) {
-      await ctx.telegram.sendMessage(ctx.chat!.id, await t("history.noTransactions"));
+      await ctx.telegram.sendMessage(
+        ctx.chat!.id,
+        await t("history.noTransactions")
+      );
       return;
     }
 
@@ -32,10 +36,12 @@ export async function handleHistory(ctx: Context): Promise<void> {
         const date = await formatDate(tx.createdAt);
         const accountName = accountMap.get(tx.accountSlug) || tx.accountSlug;
         const amountStr = formatAmount(tx.amount, tx.currency);
-        const fullDescription = tx.source === "sync" ? balanceSyncLabel : (tx.description || "");
-        const description = fullDescription.length > MAX_DISPLAY_LENGTH
-          ? fullDescription.slice(0, MAX_DISPLAY_LENGTH) + "..."
-          : fullDescription;
+        const fullDescription =
+          tx.source === "sync" ? balanceSyncLabel : tx.description || "";
+        const description =
+          fullDescription.length > MAX_DISPLAY_LENGTH
+            ? fullDescription.slice(0, MAX_DISPLAY_LENGTH) + "..."
+            : fullDescription;
         const author = tx.createdByName || "—";
         return `┌ ${date}\n└ ${accountName} · ${amountStr} · ${author} · ${description}`;
       })
@@ -44,7 +50,9 @@ export async function handleHistory(ctx: Context): Promise<void> {
     const title = await t("history.title");
     const message = `<b>📋 ${title}</b>\n\n${lines.join("\n\n")}`;
 
-    await ctx.telegram.sendMessage(ctx.chat!.id, message, { parse_mode: "HTML" });
+    await ctx.telegram.sendMessage(ctx.chat!.id, message, {
+      parse_mode: "HTML",
+    });
   } catch (error) {
     log.error("Error in /history command", error as Error);
     await ctx.telegram.sendMessage(ctx.chat!.id, await t("common.failed"));
