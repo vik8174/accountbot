@@ -46,14 +46,11 @@ Sessions use `chatId:userId` as key to support multiple users in group chats sim
 ### Message Cleanup
 In `/add` flow, all intermediate messages (command, keyboard, prompts) are deleted after successful transaction. Only the final confirmation remains.
 
-For `/history`, `/balance`, `/sync` commands — user's command message is deleted immediately.
-
 ---
 
 ## Group Chat Behavior
 
-- Bot requires **admin rights** in group to delete messages
-- Commands `/history`, `/balance`, `/sync` delete user's command message
+- Bot requires **admin rights** in group to delete messages (for `/add` cleanup)
 - `/add` flow collects all message IDs and deletes them after completion
 - Multiple users can run `/add` simultaneously (separate sessions per user)
 

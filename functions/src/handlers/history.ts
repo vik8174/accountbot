@@ -11,7 +11,6 @@ import { t } from "../i18n";
  */
 export async function handleHistory(ctx: Context): Promise<void> {
   try {
-    try { await ctx.deleteMessage(); } catch { /* ignore */ }
     const transactions = await getTransactions(5);
 
     if (transactions.length === 0) {
