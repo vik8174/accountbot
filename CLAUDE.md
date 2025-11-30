@@ -220,27 +220,37 @@ test/user-service-mocks
 ```
 💰 Account Balances
 
-┌ Card
-└ +1,234.56 $
-
-┌ Cash
-└ +500.00 ₴
+Cash +345.00 €
+Visa card +506.00 $
 ```
 
 ### History
 ```
 📋 Recent Transactions
 
-┌ 29 Jul
-└ Cash · +4.00 € · Andrew · Transaction description
+30 Nov +50.00 $
+Visa card · Viktor · Description
+
+30 Nov +50.00 €
+Cash · Viktor · Another one
 ```
 
 ### Add Success
 ```
 ✅ Transaction Added
 
-┌ +264.40 €
-└ Cash · Viktor · Test transaction
+Visa card +456.00 $
+Viktor · Groceries
+```
+
+### Sync Success
+```
+✅ Balance Synced
+
+Visa card
+Previous +729.00 $
+Adjustment -679.00 $
+New balance +50.00 $
 ```
 
 ---
