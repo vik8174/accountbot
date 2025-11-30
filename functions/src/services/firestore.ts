@@ -144,6 +144,7 @@ export async function setSession(
     accountSlug: string;
     amount?: number;
     createdById: string;
+    messageIds?: number[];
   }
 ): Promise<void> {
   const session: Session = {
@@ -152,9 +153,22 @@ export async function setSession(
     createdAt: Timestamp.now(),
     createdById: data.createdById,
     ...(data.amount !== undefined && { amount: data.amount }),
+    ...(data.messageIds && { messageIds: data.messageIds }),
   };
 
   await sessionsRef.doc(chatId).set(session);
+}
+
+/**
+ * Add message ID to session for later cleanup
+ */
+export async function addMessageIdToSession(
+  chatId: string,
+  messageId: number
+): Promise<void> {
+  await sessionsRef.doc(chatId).update({
+    messageIds: admin.firestore.FieldValue.arrayUnion(messageId),
+  });
 }
 
 /**

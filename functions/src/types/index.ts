@@ -65,6 +65,8 @@ export interface Session {
   createdAt: Timestamp;
   /** Telegram user ID who started this session */
   createdById: string;
+  /** Message IDs to delete after completing the flow */
+  messageIds?: number[];
 }
 
 /**

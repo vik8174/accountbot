@@ -41,10 +41,18 @@ export async function handleAddCommand(ctx: Context): Promise<void> {
       keyboard.push(buttons.slice(i, i + 2));
     }
 
+    // Get user's command message ID to pass it via reply
+    const userMessageId = ctx.message && "message_id" in ctx.message
+      ? ctx.message.message_id
+      : undefined;
+
     await ctx.telegram.sendMessage(
       ctx.chat!.id,
       await t("add.selectAccount"),
-      Markup.inlineKeyboard(keyboard)
+      {
+        ...Markup.inlineKeyboard(keyboard),
+        reply_parameters: userMessageId ? { message_id: userMessageId } : undefined,
+      }
     );
   } catch (error) {
     log.error("Error in /add command", error as Error);
@@ -84,11 +92,26 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
       return;
     }
 
-    // Create session
+    // Collect message IDs to delete later
+    const messageIds: number[] = [];
+
+    // Get user's original command message ID (from reply_to_message)
+    const callbackMessage = ctx.callbackQuery.message;
+    if (callbackMessage && "reply_to_message" in callbackMessage && callbackMessage.reply_to_message) {
+      messageIds.push(callbackMessage.reply_to_message.message_id);
+    }
+
+    // Get inline keyboard message ID
+    if (callbackMessage?.message_id) {
+      messageIds.push(callbackMessage.message_id);
+    }
+
+    // Create session with message IDs
     await setSession(chatId, {
       step: "amount",
       accountSlug: slug,
       createdById: telegramUserId,
+      messageIds,
     });
 
     const selected = await t("add.selected", { name: account.name });
@@ -143,7 +166,8 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
         chatId,
         session.accountSlug,
         telegramUserId,
-        text
+        text,
+        session.messageIds || []
       );
     }
 
@@ -154,7 +178,8 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
         session.accountSlug,
         session.amount!,
         telegramUserId,
-        text
+        text,
+        session.messageIds || []
       );
     }
 
@@ -185,9 +210,15 @@ async function handleAmountInput(
   chatId: string,
   accountSlug: string,
   createdById: string,
-  text: string
+  text: string,
+  messageIds: number[]
 ): Promise<boolean> {
   const MAX_AMOUNT = 1000000;
+
+  // Save user's amount message ID
+  const userMessageId = ctx.message && "message_id" in ctx.message
+    ? ctx.message.message_id
+    : null;
 
   // Parse amount (user enters in major units like 2.50)
   const normalizedText = text.replace(",", ".");
@@ -218,15 +249,27 @@ async function handleAmountInput(
   // Convert to minor units (cents) for storage
   const amountMinor = toMinorUnits(amountMajor);
 
-  // Update session to description step
+  // Collect message IDs: previous + user's amount message + bot's response
+  const updatedMessageIds = [...messageIds];
+  if (userMessageId) {
+    updatedMessageIds.push(userMessageId);
+  }
+
+  const botResponse = await ctx.telegram.sendMessage(
+    ctx.chat!.id,
+    await t("add.enterDescription")
+  );
+  updatedMessageIds.push(botResponse.message_id);
+
+  // Update session to description step with all message IDs
   await setSession(chatId, {
     step: "description",
     accountSlug,
     amount: amountMinor,
     createdById,
+    messageIds: updatedMessageIds,
   });
 
-  await ctx.telegram.sendMessage(ctx.chat!.id, await t("add.enterDescription"));
   return true;
 }
 
@@ -239,8 +282,14 @@ async function handleDescriptionInput(
   accountSlug: string,
   amount: number,
   createdById: string,
-  description: string
+  description: string,
+  messageIds: number[]
 ): Promise<boolean> {
+  // Save user's description message ID
+  const userMessageId = ctx.message && "message_id" in ctx.message
+    ? ctx.message.message_id
+    : null;
+
   // Get account details
   const account = await getAccountBySlug(accountSlug);
 
@@ -276,6 +325,14 @@ async function handleDescriptionInput(
 
   // Delete session
   await deleteSession(chatId);
+
+  // Delete all intermediate messages
+  const allMessageIds = userMessageId ? [...messageIds, userMessageId] : messageIds;
+  for (const msgId of allMessageIds) {
+    try {
+      await ctx.telegram.deleteMessage(ctx.chat!.id, msgId);
+    } catch { /* ignore - message might already be deleted */ }
+  }
 
   // Send confirmation
   const amountStr = formatAmount(amount, account.currency);
