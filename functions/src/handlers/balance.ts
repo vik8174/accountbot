@@ -30,7 +30,7 @@ export async function handleBalance(ctx: Context): Promise<void> {
     // Build block list
     const lines = accounts.map((acc) => {
       const balanceStr = formatBalance(acc.balance, acc.currency);
-      return `┌ ${acc.name}\n└ ${balanceStr}`;
+      return `${acc.name}:\n  ${balanceStr}`;
     });
 
     const title = await t("balance.title");

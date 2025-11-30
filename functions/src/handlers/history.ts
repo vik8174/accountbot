@@ -46,7 +46,7 @@ export async function handleHistory(ctx: Context): Promise<void> {
             ? fullDescription.slice(0, MAX_DISPLAY_LENGTH) + "..."
             : fullDescription;
         const author = tx.createdByName || "—";
-        return `┌ ${date}\n└ ${accountName} · ${amountStr} · ${author} · ${description}`;
+        return `${date}:\n  ${amountStr} · ${accountName} · ${author} · ${description}`;
       })
     );
 
