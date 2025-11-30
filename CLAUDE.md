@@ -19,6 +19,7 @@ Telegram → Webhook → Cloud Function → Telegraf → Firestore
 | `functions/src/index.ts` | HTTP endpoint for webhook |
 | `functions/src/bot.ts` | Telegraf bot, command registration |
 | `functions/src/handlers/*.ts` | Command logic: /add, /balance, /history, /sync |
+| `functions/src/services/logger.ts` | Firebase structured logging |
 | `functions/src/services/firestore.ts` | Firestore CRUD operations |
 | `functions/src/types/index.ts` | TypeScript interfaces |
 | `functions/src/i18n/*.ts` | Localization (uk/en) |
@@ -30,14 +31,31 @@ Telegram → Webhook → Cloud Function → Telegraf → Firestore
 
 ## Interactive /add Flow
 
-1. User: `/add`
-2. Bot: inline buttons with accounts
+1. User: `/add` or 💸 button
+2. Bot: inline buttons with accounts (reply to user's message)
 3. User: clicks button → callback `add:account:<slug>`
-4. Bot: creates session, asks for amount
+4. Bot: creates session (key: `chatId:userId`), asks for amount
 5. User: enters number
 6. Bot: updates session, asks for description
 7. User: enters text
-8. Bot: creates transaction, updates balance, deletes session
+8. Bot: creates transaction, updates balance, deletes all intermediate messages, shows result
+
+### Session Key
+Sessions use `chatId:userId` as key to support multiple users in group chats simultaneously.
+
+### Message Cleanup
+In `/add` flow, all intermediate messages (command, keyboard, prompts) are deleted after successful transaction. Only the final confirmation remains.
+
+For `/history`, `/balance`, `/sync` commands — user's command message is deleted immediately.
+
+---
+
+## Group Chat Behavior
+
+- Bot requires **admin rights** in group to delete messages
+- Commands `/history`, `/balance`, `/sync` delete user's command message
+- `/add` flow collects all message IDs and deletes them after completion
+- Multiple users can run `/add` simultaneously (separate sessions per user)
 
 ---
 
