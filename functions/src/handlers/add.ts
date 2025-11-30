@@ -366,8 +366,8 @@ async function handleDescriptionInput(
   await ctx.telegram.sendMessage(
     ctx.chat!.id,
     `<b>✅ ${successTitle}</b>\n\n` +
-      `┌ ${amountStr}\n` +
-      `└ ${account.name} · ${createdByName} · ${formattedDescription}`,
+      `${amountStr}:\n` +
+      `  ${account.name} · ${createdByName} · ${formattedDescription}`,
     { parse_mode: "HTML", ...(await getMainKeyboard()) }
   );
 

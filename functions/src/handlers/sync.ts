@@ -194,18 +194,17 @@ export async function handleSyncAmountInput(
   const oldBalanceStr = formatBalance(account.balance, account.currency);
 
   const successTitle = await t("sync.success");
-  const accountLabel = await t("common.account");
   const previousLabel = await t("common.previous");
   const adjustmentLabel = await t("common.adjustment");
   const newBalanceLabel = await t("common.newBalance");
 
   await ctx.telegram.sendMessage(
     ctx.chat!.id,
-    `<b>${successTitle}</b>\n\n` +
-      `${accountLabel}: ${account.name}\n` +
-      `${previousLabel}: ${oldBalanceStr}\n` +
-      `${adjustmentLabel}: ${deltaStr}\n` +
-      `${newBalanceLabel}: ${newBalanceStr}`,
+    `<b>✅ ${successTitle}</b>\n\n` +
+      `${account.name}:\n` +
+      `  ${previousLabel}: ${oldBalanceStr}\n` +
+      `  ${adjustmentLabel}: ${deltaStr}\n` +
+      `  ${newBalanceLabel}: ${newBalanceStr}`,
     { parse_mode: "HTML", ...(await getMainKeyboard()) }
   );
 
