@@ -3,6 +3,7 @@ import { getTransactions, getAccounts } from "../services/firestore";
 import { log } from "../services/logger";
 import { formatAmount } from "../utils/currency";
 import { formatDate } from "../utils/date";
+import { getTopicOptions } from "../utils/topics";
 import { t } from "../i18n";
 import { cleanupSession } from "./add";
 
@@ -20,7 +21,8 @@ export async function handleHistory(ctx: Context): Promise<void> {
     if (transactions.length === 0) {
       await ctx.telegram.sendMessage(
         ctx.chat!.id,
-        await t("history.noTransactions")
+        await t("history.noTransactions"),
+        getTopicOptions(ctx)
       );
       return;
     }
@@ -55,9 +57,14 @@ export async function handleHistory(ctx: Context): Promise<void> {
 
     await ctx.telegram.sendMessage(ctx.chat!.id, message, {
       parse_mode: "HTML",
+      ...getTopicOptions(ctx),
     });
   } catch (error) {
     log.error("Error in /history command", error as Error);
-    await ctx.telegram.sendMessage(ctx.chat!.id, await t("common.failed"));
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("common.failed"),
+      getTopicOptions(ctx)
+    );
   }
 }

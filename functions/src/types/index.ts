@@ -69,6 +69,8 @@ export interface Session {
   createdById: string;
   /** Message IDs to delete after completing the flow */
   messageIds?: number[];
+  /** Message thread ID for forum/topic support */
+  messageThreadId?: number;
 }
 
 /**

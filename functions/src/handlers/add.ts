@@ -11,6 +11,7 @@ import {
 import { log } from "../services/logger";
 import { toMinorUnits, formatAmount } from "../utils/currency";
 import { getMainKeyboard } from "../utils/keyboard";
+import { getTopicOptions } from "../utils/topics";
 import { handleSyncAmountInput } from "./sync";
 import { t } from "../i18n";
 
@@ -64,7 +65,11 @@ export async function handleAddCommand(ctx: Context): Promise<void> {
     const accounts = await getAccounts();
 
     if (accounts.length === 0) {
-      await ctx.telegram.sendMessage(ctx.chat!.id, await t("add.noAccounts"));
+      await ctx.telegram.sendMessage(
+        ctx.chat!.id,
+        await t("add.noAccounts"),
+        getTopicOptions(ctx)
+      );
       return;
     }
 
@@ -85,11 +90,18 @@ export async function handleAddCommand(ctx: Context): Promise<void> {
     await ctx.telegram.sendMessage(
       ctx.chat!.id,
       await t("add.selectAccount"),
-      Markup.inlineKeyboard(keyboard)
+      {
+        ...Markup.inlineKeyboard(keyboard),
+        ...getTopicOptions(ctx),
+      }
     );
   } catch (error) {
     log.error("Error in /add command", error as Error);
-    await ctx.telegram.sendMessage(ctx.chat!.id, await t("common.failed"));
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("common.failed"),
+      getTopicOptions(ctx)
+    );
   }
 }
 
@@ -134,13 +146,18 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
       messageIds.push(callbackMessage.message_id);
     }
 
-    // Create session with message IDs
+    // Get topic ID if in a topic
+    const topicOptions = getTopicOptions(ctx);
+    const messageThreadId = topicOptions.message_thread_id;
+
+    // Create session with message IDs and topic ID
     const sessionKey = getSessionKey(chatId, telegramUserId);
     await setSession(sessionKey, {
       step: "amount",
       accountSlug: slug,
       createdById: telegramUserId,
       messageIds,
+      messageThreadId,
     });
 
     const selected = await t("add.selected", { name: account.name });
@@ -191,7 +208,8 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
         session.accountSlug,
         telegramUserId,
         text,
-        session.messageIds || []
+        session.messageIds || [],
+        session.messageThreadId
       );
     }
 
@@ -203,7 +221,8 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
         session.amount!,
         telegramUserId,
         text,
-        session.messageIds || []
+        session.messageIds || [],
+        session.messageThreadId
       );
     }
 
@@ -214,7 +233,8 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
         session.accountSlug,
         telegramUserId,
         text,
-        session.messageIds || []
+        session.messageIds || [],
+        session.messageThreadId
       );
     }
 
@@ -236,7 +256,8 @@ async function handleAmountInput(
   accountSlug: string,
   createdById: string,
   text: string,
-  messageIds: number[]
+  messageIds: number[],
+  messageThreadId?: number
 ): Promise<boolean> {
   const MAX_AMOUNT = 1000000;
 
@@ -249,16 +270,26 @@ async function handleAmountInput(
   const normalizedText = text.replace(",", ".");
   const amountMajor = parseFloat(normalizedText);
 
+  const topicOptions = messageThreadId ? { message_thread_id: messageThreadId } : {};
+
   // Not a number or zero
   if (isNaN(amountMajor) || amountMajor === 0) {
-    await ctx.telegram.sendMessage(ctx.chat!.id, await t("add.invalidNumber"));
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("add.invalidNumber"),
+      topicOptions
+    );
     return true;
   }
 
   // Maximum 2 decimal places
   const decimalPart = normalizedText.split(".")[1];
   if (decimalPart && decimalPart.length > 2) {
-    await ctx.telegram.sendMessage(ctx.chat!.id, await t("add.maxDecimals"));
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("add.maxDecimals"),
+      topicOptions
+    );
     return true;
   }
 
@@ -266,7 +297,8 @@ async function handleAmountInput(
   if (Math.abs(amountMajor) > MAX_AMOUNT) {
     await ctx.telegram.sendMessage(
       ctx.chat!.id,
-      await t("add.maxAmount", { max: MAX_AMOUNT.toLocaleString() })
+      await t("add.maxAmount", { max: MAX_AMOUNT.toLocaleString() }),
+      topicOptions
     );
     return true;
   }
@@ -282,7 +314,8 @@ async function handleAmountInput(
 
   const botResponse = await ctx.telegram.sendMessage(
     ctx.chat!.id,
-    await t("add.enterDescription")
+    await t("add.enterDescription"),
+    topicOptions
   );
   updatedMessageIds.push(botResponse.message_id);
 
@@ -293,6 +326,7 @@ async function handleAmountInput(
     amount: amountMinor,
     createdById,
     messageIds: updatedMessageIds,
+    messageThreadId,
   });
 
   return true;
@@ -308,12 +342,15 @@ async function handleDescriptionInput(
   amount: number,
   createdById: string,
   description: string,
-  messageIds: number[]
+  messageIds: number[],
+  messageThreadId?: number
 ): Promise<boolean> {
   // Save user's description message ID
   const userMessageId = ctx.message && "message_id" in ctx.message
     ? ctx.message.message_id
     : null;
+
+  const topicOptions = messageThreadId ? { message_thread_id: messageThreadId } : {};
 
   // Get account details
   const account = await getAccountBySlug(accountSlug);
@@ -321,7 +358,8 @@ async function handleDescriptionInput(
   if (!account) {
     await ctx.telegram.sendMessage(
       ctx.chat!.id,
-      await t("add.accountNotFound")
+      await t("add.accountNotFound"),
+      topicOptions
     );
     await deleteSession(sessionKey);
     return true;
@@ -365,7 +403,11 @@ async function handleDescriptionInput(
     `<b>✅ ${successTitle}</b>\n\n` +
       `${account.name} ${amountStr}\n` +
       `${createdByName} · ${formattedDescription}`,
-    { parse_mode: "HTML", ...(await getMainKeyboard()) }
+    {
+      parse_mode: "HTML",
+      ...(await getMainKeyboard()),
+      ...topicOptions,
+    }
   );
 
   return true;

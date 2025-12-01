@@ -12,6 +12,7 @@ import {
 } from "./handlers/sync";
 import { log } from "./services/logger";
 import { getMainKeyboard } from "./utils/keyboard";
+import { getTopicOptions } from "./utils/topics";
 import { t } from "./i18n";
 
 /**
@@ -52,6 +53,7 @@ export function createBot(token: string): Telegraf {
       {
         parse_mode: "HTML",
         ...(await getMainKeyboard()),
+        ...getTopicOptions(ctx),
       }
     );
   });
@@ -66,7 +68,7 @@ export function createBot(token: string): Telegraf {
     await ctx.telegram.sendMessage(
       ctx.chat.id,
       `<b>${title}</b>\n\n${add}\n${balance}\n${history}\n${sync}`,
-      { parse_mode: "HTML", ...(await getMainKeyboard()) }
+      { parse_mode: "HTML", ...(await getMainKeyboard()), ...getTopicOptions(ctx) }
     );
   });
 

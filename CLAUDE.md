@@ -26,6 +26,7 @@ Telegram → Webhook → Cloud Function → Telegraf → Firestore
 | `functions/src/utils/keyboard.ts` | Reply keyboard with emoji buttons |
 | `functions/src/utils/currency.ts` | Amount/balance formatting |
 | `functions/src/utils/date.ts` | Date formatting |
+| `functions/src/utils/topics.ts` | Forum topics (supergroups) support |
 
 ---
 
@@ -43,6 +44,9 @@ Telegram → Webhook → Cloud Function → Telegraf → Firestore
 ### Session Key
 Sessions use `chatId:userId` as key to support multiple users in group chats simultaneously.
 
+### Topic Preservation
+Bot preserves topic context throughout the flow by storing `message_thread_id` in the session and using it for all replies.
+
 ### Message Cleanup
 In `/add` flow, all intermediate messages (command, keyboard, prompts) are deleted after successful transaction. Only the final confirmation remains.
 
@@ -53,6 +57,14 @@ In `/add` flow, all intermediate messages (command, keyboard, prompts) are delet
 - Bot requires **admin rights** in group to delete messages (for `/add` cleanup)
 - `/add` flow collects all message IDs and deletes them after completion
 - Multiple users can run `/add` simultaneously (separate sessions per user)
+
+### Topics Support (Forum Supergroups)
+
+Bot fully supports Telegram Topics (forum supergroups):
+- All commands respond in the same topic where they were invoked
+- `message_thread_id` is extracted from incoming messages and stored in sessions
+- All bot replies use the stored `message_thread_id` to maintain topic context
+- Implementation: `utils/topics.ts` provides `getTopicOptions()` helper
 
 ---
 
@@ -99,6 +111,19 @@ interface Account {
   slug: string;
   currency: CurrencyCode;
   balance: number;  // Denormalized, in minor units
+}
+```
+
+### Session
+```typescript
+interface Session {
+  step: SessionStep;
+  accountSlug: string;
+  amount?: number;           // Minor units
+  createdAt: Timestamp;
+  createdById: string;       // Telegram user ID
+  messageIds?: number[];     // For cleanup
+  messageThreadId?: number;  // For topics support
 }
 ```
 

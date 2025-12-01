@@ -10,6 +10,7 @@ import {
 import { log } from "../services/logger";
 import { toMinorUnits, formatAmount, formatBalance } from "../utils/currency";
 import { getMainKeyboard } from "../utils/keyboard";
+import { getTopicOptions } from "../utils/topics";
 import { t } from "../i18n";
 import { cleanupSession } from "./add";
 
@@ -25,7 +26,11 @@ export async function handleSyncCommand(ctx: Context): Promise<void> {
     const accounts = await getAccounts();
 
     if (accounts.length === 0) {
-      await ctx.telegram.sendMessage(ctx.chat!.id, await t("add.noAccounts"));
+      await ctx.telegram.sendMessage(
+        ctx.chat!.id,
+        await t("add.noAccounts"),
+        getTopicOptions(ctx)
+      );
       return;
     }
 
@@ -43,10 +48,21 @@ export async function handleSyncCommand(ctx: Context): Promise<void> {
       keyboard.push(buttons.slice(i, i + 2));
     }
 
-    await ctx.telegram.sendMessage(ctx.chat!.id, await t("sync.selectAccount"), Markup.inlineKeyboard(keyboard));
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("sync.selectAccount"),
+      {
+        ...Markup.inlineKeyboard(keyboard),
+        ...getTopicOptions(ctx),
+      }
+    );
   } catch (error) {
     log.error("Error in /sync command", error as Error);
-    await ctx.telegram.sendMessage(ctx.chat!.id, await t("common.failed"));
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("common.failed"),
+      getTopicOptions(ctx)
+    );
   }
 }
 
@@ -91,13 +107,18 @@ export async function handleSyncAccountCallback(ctx: Context): Promise<void> {
       messageIds.push(callbackMessage.message_id);
     }
 
-    // Create session for sync with message IDs
+    // Get topic ID if in a topic
+    const topicOptions = getTopicOptions(ctx);
+    const messageThreadId = topicOptions.message_thread_id;
+
+    // Create session for sync with message IDs and topic ID
     const sessionKey = getSessionKey(chatId, telegramUserId);
     await setSession(sessionKey, {
       step: "sync_amount",
       accountSlug: slug,
       createdById: telegramUserId,
       messageIds,
+      messageThreadId,
     });
 
     const currentBalanceStr = formatBalance(account.balance, account.currency);
@@ -126,7 +147,8 @@ export async function handleSyncAmountInput(
   accountSlug: string,
   createdById: string,
   text: string,
-  messageIds: number[] = []
+  messageIds: number[] = [],
+  messageThreadId?: number
 ): Promise<boolean> {
   const MAX_AMOUNT = 1000000;
 
@@ -135,32 +157,50 @@ export async function handleSyncAmountInput(
     ? ctx.message.message_id
     : null;
 
+  const topicOptions = messageThreadId ? { message_thread_id: messageThreadId } : {};
+
   // Parse amount (user enters in major units like 250.00)
   const normalizedText = text.replace(",", ".");
   const newBalanceMajor = parseFloat(normalizedText);
 
   // Not a number
   if (isNaN(newBalanceMajor)) {
-    await ctx.telegram.sendMessage(ctx.chat!.id, await t("add.invalidNumber"));
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("add.invalidNumber"),
+      topicOptions
+    );
     return true;
   }
 
   // Negative balance not allowed
   if (newBalanceMajor < 0) {
-    await ctx.telegram.sendMessage(ctx.chat!.id, await t("sync.negativeNotAllowed"));
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("sync.negativeNotAllowed"),
+      topicOptions
+    );
     return true;
   }
 
   // Maximum 2 decimal places
   const decimalPart = normalizedText.split(".")[1];
   if (decimalPart && decimalPart.length > 2) {
-    await ctx.telegram.sendMessage(ctx.chat!.id, await t("add.maxDecimals"));
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("add.maxDecimals"),
+      topicOptions
+    );
     return true;
   }
 
   // Amount limit
   if (newBalanceMajor > MAX_AMOUNT) {
-    await ctx.telegram.sendMessage(ctx.chat!.id, await t("sync.maxBalance", { max: MAX_AMOUNT.toLocaleString() }));
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("sync.maxBalance", { max: MAX_AMOUNT.toLocaleString() }),
+      topicOptions
+    );
     return true;
   }
 
@@ -168,7 +208,11 @@ export async function handleSyncAmountInput(
   const account = await getAccountBySlug(accountSlug);
 
   if (!account) {
-    await ctx.telegram.sendMessage(ctx.chat!.id, await t("sync.cancelled"));
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("sync.cancelled"),
+      topicOptions
+    );
     await deleteSession(sessionKey);
     return true;
   }
@@ -182,6 +226,7 @@ export async function handleSyncAmountInput(
     await deleteSession(sessionKey);
     await ctx.telegram.sendMessage(ctx.chat!.id, await t("sync.noChange"), {
       ...(await getMainKeyboard()),
+      ...topicOptions,
     });
     return true;
   }
@@ -225,7 +270,11 @@ export async function handleSyncAmountInput(
       `${previousLabel} ${oldBalanceStr}\n` +
       `${adjustmentLabel} ${deltaStr}\n` +
       `${newBalanceLabel} ${newBalanceStr}`,
-    { parse_mode: "HTML", ...(await getMainKeyboard()) }
+    {
+      parse_mode: "HTML",
+      ...(await getMainKeyboard()),
+      ...topicOptions,
+    }
   );
 
   return true;

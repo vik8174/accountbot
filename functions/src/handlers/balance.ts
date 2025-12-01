@@ -2,6 +2,7 @@ import { Context } from "telegraf";
 import { getAccounts } from "../services/firestore";
 import { log } from "../services/logger";
 import { formatBalance } from "../utils/currency";
+import { getTopicOptions } from "../utils/topics";
 import { t } from "../i18n";
 import { cleanupSession } from "./add";
 
@@ -19,7 +20,8 @@ export async function handleBalance(ctx: Context): Promise<void> {
     if (accounts.length === 0) {
       await ctx.telegram.sendMessage(
         ctx.chat!.id,
-        await t("balance.noAccounts")
+        await t("balance.noAccounts"),
+        getTopicOptions(ctx)
       );
       return;
     }
@@ -38,9 +40,14 @@ export async function handleBalance(ctx: Context): Promise<void> {
 
     await ctx.telegram.sendMessage(ctx.chat!.id, message, {
       parse_mode: "HTML",
+      ...getTopicOptions(ctx),
     });
   } catch (error) {
     log.error("Error in /balance command", error as Error);
-    await ctx.telegram.sendMessage(ctx.chat!.id, await t("common.failed"));
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("common.failed"),
+      getTopicOptions(ctx)
+    );
   }
 }

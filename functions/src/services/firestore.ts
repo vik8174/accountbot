@@ -180,6 +180,7 @@ export async function setSession(
     amount?: number;
     createdById: string;
     messageIds?: number[];
+    messageThreadId?: number;
   }
 ): Promise<void> {
   const session: Session = {
@@ -189,6 +190,7 @@ export async function setSession(
     createdById: data.createdById,
     ...(data.amount !== undefined && { amount: data.amount }),
     ...(data.messageIds && { messageIds: data.messageIds }),
+    ...(data.messageThreadId !== undefined && { messageThreadId: data.messageThreadId }),
   };
 
   await sessionsRef.doc(sessionKey).set(session);
