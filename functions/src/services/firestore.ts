@@ -8,10 +8,23 @@ import {
   SessionStep,
 } from "../types";
 import { log } from "./logger";
+import * as path from "path";
+import * as fs from "fs";
 
 // Initialize Firebase Admin (only once)
 if (!admin.apps.length) {
-  admin.initializeApp();
+  // For local CLI scripts, try to use serviceAccountKey.json if available
+  const serviceAccountPath = path.join(__dirname, "../../serviceAccountKey.json");
+
+  if (fs.existsSync(serviceAccountPath)) {
+    // Local development with service account key
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccountPath),
+    });
+  } else {
+    // Cloud Functions or Application Default Credentials
+    admin.initializeApp();
+  }
 }
 
 const db = admin.firestore();
@@ -63,6 +76,31 @@ export async function updateAccountBalance(
   });
 
   log.info("Account balance updated", { accountSlug: slug, delta });
+}
+
+/**
+ * Create new account
+ * @throws Error if account with slug already exists
+ */
+export async function createAccount(account: Account): Promise<string> {
+  // 1. Verify slug uniqueness (defensive check)
+  const existing = await getAccountBySlug(account.slug);
+  if (existing) {
+    throw new Error(`Account with slug '${account.slug}' already exists`);
+  }
+
+  // 2. Create account document (auto-generated ID)
+  const docRef = accountsRef.doc();
+  await docRef.set({
+    name: account.name,
+    slug: account.slug,
+    currency: account.currency,
+    balance: account.balance,
+  });
+
+  log.info("Account created", { slug: account.slug, id: docRef.id });
+
+  return docRef.id;
 }
 
 // ============ TRANSACTIONS ============

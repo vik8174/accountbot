@@ -10,7 +10,9 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix"
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "add-account": "ts-node src/cli/add-account.ts",
+    "list-accounts": "ts-node src/cli/list-accounts.ts"
   },
   "engines": {
     "node": "20"
@@ -18,13 +20,16 @@
   "dependencies": {
     "firebase-admin": "^11.11.1",
     "firebase-functions": "^4.5.0",
+    "prompts": "^2.4.2",
     "telegraf": "^4.15.3"
   },
   "devDependencies": {
     "@types/node": "^18.19.0",
+    "@types/prompts": "^2.4.9",
     "@typescript-eslint/eslint-plugin": "^8.48.0",
     "@typescript-eslint/parser": "^8.48.0",
     "eslint": "^8.55.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.2"
   },
   "private": true

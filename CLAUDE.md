@@ -27,6 +27,10 @@ Telegram → Webhook → Cloud Function → Telegraf → Firestore
 | `functions/src/utils/currency.ts` | Amount/balance formatting |
 | `functions/src/utils/date.ts` | Date formatting |
 | `functions/src/utils/topics.ts` | Forum topics (supergroups) support |
+| `functions/src/cli/add-account.ts` | CLI script for adding accounts |
+| `functions/src/cli/list-accounts.ts` | CLI script for listing accounts |
+| `functions/src/cli/utils/validation.ts` | Input validation utilities |
+| `functions/src/cli/utils/prompts.ts` | Interactive prompts |
 
 ---
 
@@ -76,7 +80,21 @@ Bot fully supports Telegram Topics (forum supergroups):
 3. Update `/start` message
 
 ### Add a new account
-Manually in Firebase Console: Firestore → accounts → Add document
+Use CLI script (recommended):
+```bash
+cd functions
+npm run add-account
+```
+
+Or manually in Firebase Console: Firestore → accounts → Add document
+
+See `functions/CLI_SETUP.md` for authentication setup.
+
+### List all accounts
+```bash
+cd functions
+npm run list-accounts
+```
 
 ### Change message formatting
 Edit the corresponding handler in `handlers/`
@@ -293,3 +311,121 @@ TypeScript type:
 ```typescript
 type CurrencyCode = "EUR" | "USD" | "UAH";
 ```
+
+---
+
+## CLI Scripts for Account Management
+
+### Overview
+
+Interactive command-line scripts for managing accounts locally. Located in `functions/src/cli/`.
+
+### Setup
+
+See `functions/CLI_SETUP.md` for detailed authentication setup.
+
+**Quick setup:**
+1. Download service account key from Firebase Console
+2. Save as `functions/serviceAccountKey.json`
+3. Run scripts via npm commands
+
+### Available Scripts
+
+**List all accounts:**
+```bash
+cd functions
+npm run list-accounts
+```
+
+Output:
+```
+=== Accounts ===
+
+📊 Cash
+   Slug: cash
+   Balance: +345.00 €
+
+📊 Visa card
+   Slug: visa-card
+   Balance: +506.00 $
+
+Total: 2 account(s)
+```
+
+**Add new account (interactive):**
+```bash
+cd functions
+npm run add-account
+```
+
+Interactive prompts:
+1. Account name (e.g., "Cash", "Visa Card")
+2. Slug (auto-suggested from name, e.g., "visa-card")
+3. Currency (EUR/USD/UAH)
+4. Initial balance (default: 0)
+5. Confirmation
+
+### Validation Rules
+
+**Slug:**
+- Pattern: `/^[a-z0-9]+(?:-[a-z0-9]+)*$/`
+- Lowercase only, alphanumeric + hyphens
+- No leading/trailing hyphens
+- Length: 2-50 characters
+- Must be unique
+
+**Amount:**
+- Decimal format: `100.50`, `0`, `-50.25`
+- Max 2 decimal places
+- Range: ±1,000,000,000 (major units)
+
+**Currency:**
+- Valid values: `EUR`, `USD`, `UAH`
+- Case-insensitive input
+
+### Architecture
+
+```
+functions/src/cli/
+├── add-account.ts          # Main CLI script
+├── list-accounts.ts        # List accounts script
+└── utils/
+    ├── prompts.ts          # Interactive prompts (uses 'prompts' library)
+    └── validation.ts       # Input validation logic
+```
+
+**Dependencies:**
+- `prompts` - Lightweight interactive CLI prompts
+- `ts-node` - Execute TypeScript directly
+- Reuses existing services: `firestore.ts`, `currency.ts`
+
+### Firebase Admin Initialization
+
+The CLI scripts use automatic credential detection:
+
+1. **Local development:** Uses `serviceAccountKey.json` if present
+2. **Cloud Functions:** Uses Application Default Credentials
+3. **Fallback:** Environment variable `GOOGLE_APPLICATION_CREDENTIALS`
+
+Implementation in `services/firestore.ts`:
+```typescript
+if (fs.existsSync(serviceAccountPath)) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccountPath),
+  });
+} else {
+  admin.initializeApp(); // ADC or Cloud Functions
+}
+```
+
+### Firestore Service Functions
+
+**New function added:**
+```typescript
+createAccount(account: Account): Promise<string>
+```
+
+- Validates slug uniqueness
+- Creates account document in Firestore
+- Returns document ID
+- Logs operation for audit trail
