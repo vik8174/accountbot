@@ -9,7 +9,7 @@ import {
 } from "../services/firestore";
 import { log } from "../services/logger";
 import { toMinorUnits, formatAmount, formatBalance } from "../utils/currency";
-import { getMainKeyboard } from "../utils/keyboard";
+import { getAdaptiveKeyboard } from "../utils/keyboard";
 import { getTopicOptions } from "../utils/topics";
 import { t } from "../i18n";
 import { cleanupSession } from "./add";
@@ -20,6 +20,11 @@ import { cleanupSession } from "./add";
  */
 export async function handleSyncCommand(ctx: Context): Promise<void> {
   try {
+    // Answer callback query if from inline button
+    if (ctx.callbackQuery) {
+      await ctx.answerCbQuery();
+    }
+
     // Cleanup any active /add session
     await cleanupSession(ctx);
 
@@ -225,7 +230,7 @@ export async function handleSyncAmountInput(
   if (delta === 0) {
     await deleteSession(sessionKey);
     await ctx.telegram.sendMessage(ctx.chat!.id, await t("sync.noChange"), {
-      ...(await getMainKeyboard()),
+      ...(await getAdaptiveKeyboard(ctx)),
       ...topicOptions,
     });
     return true;
@@ -272,7 +277,7 @@ export async function handleSyncAmountInput(
       `${newBalanceLabel} ${newBalanceStr}`,
     {
       parse_mode: "HTML",
-      ...(await getMainKeyboard()),
+      ...(await getAdaptiveKeyboard(ctx)),
       ...topicOptions,
     }
   );

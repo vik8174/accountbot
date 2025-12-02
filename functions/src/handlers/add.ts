@@ -10,7 +10,7 @@ import {
 } from "../services/firestore";
 import { log } from "../services/logger";
 import { toMinorUnits, formatAmount } from "../utils/currency";
-import { getMainKeyboard } from "../utils/keyboard";
+import { getAdaptiveKeyboard } from "../utils/keyboard";
 import { getTopicOptions } from "../utils/topics";
 import { handleSyncAmountInput } from "./sync";
 import { t } from "../i18n";
@@ -59,6 +59,11 @@ export async function cleanupSession(ctx: Context): Promise<void> {
  */
 export async function handleAddCommand(ctx: Context): Promise<void> {
   try {
+    // Answer callback query if from inline button
+    if (ctx.callbackQuery) {
+      await ctx.answerCbQuery();
+    }
+
     // Cleanup any existing session (e.g., if user started new /add while previous was in progress)
     await cleanupSession(ctx);
 
@@ -406,7 +411,7 @@ async function handleDescriptionInput(
       `${createdByName} · ${formattedDescription}`,
     {
       parse_mode: "HTML",
-      ...(await getMainKeyboard()),
+      ...(await getAdaptiveKeyboard(ctx)),
       ...topicOptions,
     }
   );

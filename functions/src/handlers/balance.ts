@@ -12,6 +12,11 @@ import { cleanupSession } from "./add";
  */
 export async function handleBalance(ctx: Context): Promise<void> {
   try {
+    // Answer callback query if from inline button
+    if (ctx.callbackQuery) {
+      await ctx.answerCbQuery();
+    }
+
     // Cleanup any active /add session
     await cleanupSession(ctx);
 

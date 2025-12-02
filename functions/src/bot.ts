@@ -11,7 +11,7 @@ import {
   handleSyncAccountCallback,
 } from "./handlers/sync";
 import { log } from "./services/logger";
-import { getMainKeyboard } from "./utils/keyboard";
+import { getAdaptiveKeyboard } from "./utils/keyboard";
 import { getTopicOptions } from "./utils/topics";
 import { t } from "./i18n";
 
@@ -52,7 +52,7 @@ export function createBot(token: string): Telegraf {
         `${keyboardHint}`,
       {
         parse_mode: "HTML",
-        ...(await getMainKeyboard()),
+        ...(await getAdaptiveKeyboard(ctx)),
         ...getTopicOptions(ctx),
       }
     );
@@ -68,7 +68,7 @@ export function createBot(token: string): Telegraf {
     await ctx.telegram.sendMessage(
       ctx.chat.id,
       `<b>${title}</b>\n\n${add}\n${balance}\n${history}\n${sync}`,
-      { parse_mode: "HTML", ...(await getMainKeyboard()), ...getTopicOptions(ctx) }
+      { parse_mode: "HTML", ...(await getAdaptiveKeyboard(ctx)), ...getTopicOptions(ctx) }
     );
   });
 
@@ -87,6 +87,12 @@ export function createBot(token: string): Telegraf {
   // Callback query handlers for account selection
   bot.action(/^add:account:.+$/, handleAccountCallback);
   bot.action(/^sync:account:.+$/, handleSyncAccountCallback);
+
+  // Inline keyboard callback handlers (for forum topics)
+  bot.action("cmd:add", handleAddCommand);
+  bot.action("cmd:balance", handleBalance);
+  bot.action("cmd:history", handleHistory);
+  bot.action("cmd:sync", handleSyncCommand);
 
   // Text message handler for session flow
   bot.on("text", async (ctx, next) => {
