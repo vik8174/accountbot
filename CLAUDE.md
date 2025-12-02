@@ -23,7 +23,8 @@ Telegram → Webhook → Cloud Function → Telegraf → Firestore
 | `functions/src/services/firestore.ts` | Firestore CRUD operations |
 | `functions/src/types/index.ts` | TypeScript interfaces |
 | `functions/src/i18n/*.ts` | Localization (uk/en) |
-| `functions/src/utils/keyboard.ts` | Reply keyboard with emoji buttons |
+| `functions/src/utils/keyboard.ts` | Adaptive keyboards (reply/inline) with emoji buttons |
+| `functions/src/utils/chat.ts` | Chat type detection (forum topics, private chats) |
 | `functions/src/utils/currency.ts` | Amount/balance formatting |
 | `functions/src/utils/date.ts` | Date formatting |
 | `functions/src/utils/topics.ts` | Forum topics (supergroups) support |
@@ -69,6 +70,31 @@ Bot fully supports Telegram Topics (forum supergroups):
 - `message_thread_id` is extracted from incoming messages and stored in sessions
 - All bot replies use the stored `message_thread_id` to maintain topic context
 - Implementation: `utils/topics.ts` provides `getTopicOptions()` helper
+
+### Keyboard Behavior (Hybrid Approach)
+
+Bot uses **adaptive keyboards** that automatically switch based on chat type:
+
+**Reply Keyboard (ReplyKeyboardMarkup):**
+- Used in: Private chats, regular groups, regular supergroups
+- Persistent keyboard at bottom of chat
+- Buttons: 💸 Транзакція, 💰 Баланс, 📋 Історія, 🔄 Синхронізація
+
+**Inline Keyboard (InlineKeyboardMarkup):**
+- Used in: Forum topics (supergroups with topics enabled)
+- Appears under bot messages
+- Same commands as reply keyboard but as inline buttons
+
+**Why hybrid approach:**
+- Telegram API limitation: Reply keyboards don't work in forum topics
+- Solution: Detect forum topic via `message_thread_id` and show inline keyboard instead
+- Detection: `utils/chat.ts` provides `isForumTopic()` helper
+- Implementation: `utils/keyboard.ts` provides `getAdaptiveKeyboard(ctx)` function
+
+**Callback handlers:**
+- All commands support both slash commands (`/add`) and keyboard buttons
+- Inline keyboard callbacks: `cmd:add`, `cmd:balance`, `cmd:history`, `cmd:sync`
+- Registered in `bot.ts` via `bot.action()`
 
 ---
 
