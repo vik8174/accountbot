@@ -14,24 +14,24 @@ Telegram → Webhook → Cloud Function → Telegraf → Firestore
 
 ### Key Files
 
-| File | Purpose |
-|------|---------|
-| `functions/src/index.ts` | HTTP endpoint for webhook |
-| `functions/src/bot.ts` | Telegraf bot, command registration |
-| `functions/src/handlers/*.ts` | Command logic: /add, /balance, /history, /sync |
-| `functions/src/services/logger.ts` | Firebase structured logging |
-| `functions/src/services/firestore.ts` | Firestore CRUD operations |
-| `functions/src/types/index.ts` | TypeScript interfaces |
-| `functions/src/i18n/*.ts` | Localization (uk/en) |
-| `functions/src/utils/keyboard.ts` | Adaptive keyboards (reply/inline) with emoji buttons |
-| `functions/src/utils/chat.ts` | Chat type detection (forum topics, private chats) |
-| `functions/src/utils/currency.ts` | Amount/balance formatting |
-| `functions/src/utils/date.ts` | Date formatting |
-| `functions/src/utils/topics.ts` | Forum topics (supergroups) support |
-| `functions/src/cli/add-account.ts` | CLI script for adding accounts |
-| `functions/src/cli/list-accounts.ts` | CLI script for listing accounts |
-| `functions/src/cli/utils/validation.ts` | Input validation utilities |
-| `functions/src/cli/utils/prompts.ts` | Interactive prompts |
+| File                                    | Purpose                                              |
+| --------------------------------------- | ---------------------------------------------------- |
+| `functions/src/index.ts`                | HTTP endpoint for webhook                            |
+| `functions/src/bot.ts`                  | Telegraf bot, command registration                   |
+| `functions/src/handlers/*.ts`           | Command logic: /add, /balance, /history, /sync       |
+| `functions/src/services/logger.ts`      | Firebase structured logging                          |
+| `functions/src/services/firestore.ts`   | Firestore CRUD operations                            |
+| `functions/src/types/index.ts`          | TypeScript interfaces                                |
+| `functions/src/i18n/*.ts`               | Localization (uk/en)                                 |
+| `functions/src/utils/keyboard.ts`       | Adaptive keyboards (reply/inline) with emoji buttons |
+| `functions/src/utils/chat.ts`           | Chat type detection (forum topics, private chats)    |
+| `functions/src/utils/currency.ts`       | Amount/balance formatting                            |
+| `functions/src/utils/date.ts`           | Date formatting                                      |
+| `functions/src/utils/topics.ts`         | Forum topics (supergroups) support                   |
+| `functions/src/cli/add-account.ts`      | CLI script for adding accounts                       |
+| `functions/src/cli/list-accounts.ts`    | CLI script for listing accounts                      |
+| `functions/src/cli/utils/validation.ts` | Input validation utilities                           |
+| `functions/src/cli/utils/prompts.ts`    | Interactive prompts                                  |
 
 ---
 
@@ -47,12 +47,15 @@ Telegram → Webhook → Cloud Function → Telegraf → Firestore
 8. Bot: creates transaction with `balanceAfter`, updates balance atomically, deletes all intermediate messages, shows result
 
 ### Session Key
+
 Sessions use `chatId:userId` as key to support multiple users in group chats simultaneously.
 
 ### Topic Preservation
+
 Bot preserves topic context throughout the flow by storing `message_thread_id` in the session and using it for all replies.
 
 ### Message Cleanup
+
 In `/add` flow, all intermediate messages (command, keyboard, prompts) are deleted after successful transaction. Only the final confirmation remains.
 
 ---
@@ -66,6 +69,7 @@ In `/add` flow, all intermediate messages (command, keyboard, prompts) are delet
 ### Topics Support (Forum Supergroups)
 
 Bot fully supports Telegram Topics (forum supergroups):
+
 - All commands respond in the same topic where they were invoked
 - `message_thread_id` is extracted from incoming messages and stored in sessions
 - All bot replies use the stored `message_thread_id` to maintain topic context
@@ -76,22 +80,26 @@ Bot fully supports Telegram Topics (forum supergroups):
 Bot uses **adaptive keyboards** that automatically switch based on chat type:
 
 **Reply Keyboard (ReplyKeyboardMarkup):**
+
 - Used in: Private chats, regular groups, regular supergroups
 - Persistent keyboard at bottom of chat
 - Buttons: 💸 Add, 💰 Balance, 📋 History, 🔄 Sync
 
 **Inline Keyboard (InlineKeyboardMarkup):**
+
 - Used in: Forum topics (supergroups with topics enabled)
 - Appears under bot messages
 - Same commands as reply keyboard but as inline buttons
 
 **Why hybrid approach:**
+
 - Telegram API limitation: Reply keyboards don't work in forum topics
 - Solution: Detect forum topic via `message_thread_id` and show inline keyboard instead
 - Detection: `utils/chat.ts` provides `isForumTopic()` helper
 - Implementation: `utils/keyboard.ts` provides `getAdaptiveKeyboard(ctx)` function
 
 **Callback handlers:**
+
 - All commands support both slash commands (`/add`) and keyboard buttons
 - Inline keyboard callbacks: `cmd:add`, `cmd:balance`, `cmd:history`, `cmd:sync`
 - Registered in `bot.ts` via `bot.action()`
@@ -101,12 +109,15 @@ Bot uses **adaptive keyboards** that automatically switch based on chat type:
 ## Common Tasks
 
 ### Add a new command
+
 1. Create handler in `handlers/`
 2. Register in `bot.ts`
 3. Update `/start` message
 
 ### Add a new account
+
 Use CLI script (recommended):
+
 ```bash
 npm run add-account
 ```
@@ -116,14 +127,17 @@ Or manually in Firebase Console: Firestore → accounts → Add document
 See `functions/CLI_SETUP.md` for authentication setup.
 
 ### List all accounts
+
 ```bash
 npm run list-accounts
 ```
 
 ### Change message formatting
+
 Edit the corresponding handler in `handlers/`
 
 ### Verify data integrity
+
 Use `verifyAccountIntegrity(slug)` from `services/firestore.ts` to check account consistency.
 
 ---
@@ -135,6 +149,7 @@ Use `verifyAccountIntegrity(slug)` from `services/firestore.ts` to check account
 All commands should be run from project root:
 
 **Development:**
+
 ```bash
 npm run build        # Compile TypeScript
 npm run build:watch  # Compile in watch mode
@@ -144,6 +159,7 @@ npm run serve        # Start local emulator
 ```
 
 **Deployment:**
+
 ```bash
 npm run deploy            # Deploy functions only
 npm run deploy:all        # Deploy everything
@@ -154,6 +170,7 @@ npm run logs              # View function logs
 ```
 
 **CLI Utilities:**
+
 ```bash
 npm run add-account      # Add new account (interactive)
 npm run list-accounts    # List all accounts
@@ -164,18 +181,22 @@ npm run list-accounts    # List all accounts
 Located in `functions/package.json`. These are called by root scripts:
 
 **TypeScript:**
+
 - `build` - Direct TypeScript compilation (`tsc`)
 - `build:watch` - Watch mode compilation
 
 **Linting:**
+
 - `lint` - ESLint check
 - `lint:fix` - ESLint auto-fix
 
 **CLI:**
+
 - `add-account` - Direct CLI execution
 - `list-accounts` - Direct CLI execution
 
 **Architecture:**
+
 - ✅ Root = Firebase commands + delegation to functions
 - ✅ Functions = TypeScript/ESLint/CLI implementation
 - ✅ No duplication between root and functions
@@ -186,48 +207,53 @@ Located in `functions/package.json`. These are called by root scripts:
 ## Data Model
 
 ### Transaction
+
 ```typescript
 interface Transaction {
   accountSlug: string;
-  amount: number;           // Minor units (cents/kopiykas)
+  amount: number; // Minor units (cents/kopiykas)
   currency: CurrencyCode;
-  description?: string;     // Optional for sync
+  description?: string; // Optional for sync
   type: "add" | "subtract"; // Inferred from amount sign
   source: "manual" | "sync";
   createdAt: Timestamp;
   createdById: string;
   createdByName: string;
-  balanceAfter: number;     // Account balance after transaction (minor units)
+  balanceAfter: number; // Account balance after transaction (minor units)
 }
 ```
 
 ### Account
+
 ```typescript
 interface Account {
   name: string;
   slug: string;
   currency: CurrencyCode;
-  balance: number;  // Denormalized, in minor units
+  balance: number; // Denormalized, in minor units
 }
 ```
 
 **Important:** `slug` must be unique across all accounts. This uniqueness is enforced at application level in `createAccount()` function, which checks for existing slugs before creating new accounts.
 
 ### Session
+
 ```typescript
 interface Session {
   step: SessionStep;
   accountSlug: string;
-  amount?: number;           // Minor units
+  amount?: number; // Minor units
   createdAt: Timestamp;
-  createdById: string;       // Telegram user ID
-  messageIds?: number[];     // For cleanup
-  messageThreadId?: number;  // For topics support
+  createdById: string; // Telegram user ID
+  messageIds?: number[]; // For cleanup
+  messageThreadId?: number; // For topics support
 }
 ```
 
 ### Atomic Transaction Creation
+
 Transactions are created using `createTransactionAndUpdateBalance()` which:
+
 1. Reads current account balance
 2. Calculates new balance
 3. Writes transaction with `balanceAfter`
@@ -277,25 +303,26 @@ Always apply these fundamental programming principles when writing code:
 ## Commit Messages — Conventional Commits
 
 Format:
+
 ```
 <type>(<scope>): <short summary>
 ```
 
 ### Types
 
-| Type | Description |
-|------|-------------|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation changes |
-| `style` | Formatting (no logic changes) |
+| Type       | Description                           |
+| ---------- | ------------------------------------- |
+| `feat`     | New feature                           |
+| `fix`      | Bug fix                               |
+| `docs`     | Documentation changes                 |
+| `style`    | Formatting (no logic changes)         |
 | `refactor` | Code refactor without behavior change |
-| `perf` | Performance improvements |
-| `test` | Tests added or updated |
-| `chore` | Configs, dependencies, minor tasks |
-| `ci` | CI/CD changes |
-| `build` | Build system changes |
-| `revert` | Revert previous commit |
+| `perf`     | Performance improvements              |
+| `test`     | Tests added or updated                |
+| `chore`    | Configs, dependencies, minor tasks    |
+| `ci`       | CI/CD changes                         |
+| `build`    | Build system changes                  |
+| `revert`   | Revert previous commit                |
 
 ### Examples
 
@@ -310,6 +337,7 @@ test(api): add integration tests for orders endpoint
 ## Branch Naming — Conventional Branch Names
 
 Format:
+
 ```
 <type>/<short-description>
 ```
@@ -341,6 +369,7 @@ test/user-service-mocks
 ## Display Formats
 
 ### Balance
+
 ```
 💰 Account Balances
 
@@ -349,6 +378,7 @@ Visa card +506.00 $
 ```
 
 ### History
+
 ```
 📋 Recent Transactions
 
@@ -360,6 +390,7 @@ Cash · Viktor · Another one
 ```
 
 ### Add Success
+
 ```
 ✅ Transaction Added
 
@@ -368,6 +399,7 @@ Viktor · Groceries
 ```
 
 ### Sync Success
+
 ```
 ✅ Balance Synced
 
@@ -389,6 +421,7 @@ Supported currencies:
 | `UAH` | Ukrainian Hryvnia |
 
 TypeScript type:
+
 ```typescript
 type CurrencyCode = "EUR" | "USD" | "UAH";
 ```
@@ -406,6 +439,7 @@ Interactive command-line scripts for managing accounts locally. Located in `func
 See `functions/CLI_SETUP.md` for detailed authentication setup.
 
 **Quick setup:**
+
 1. Download service account key from Firebase Console
 2. Save as `functions/serviceAccountKey.json`
 3. Run scripts via npm commands
@@ -413,12 +447,14 @@ See `functions/CLI_SETUP.md` for detailed authentication setup.
 ### Available Scripts
 
 **List all accounts:**
+
 ```bash
 cd functions
 npm run list-accounts
 ```
 
 Output:
+
 ```
 === Accounts ===
 
@@ -434,12 +470,14 @@ Total: 2 account(s)
 ```
 
 **Add new account (interactive):**
+
 ```bash
 cd functions
 npm run add-account
 ```
 
 Interactive prompts:
+
 1. Account name (e.g., "Cash", "Visa Card")
 2. Slug (auto-suggested from name, e.g., "visa-card")
 3. Currency (EUR/USD/UAH)
@@ -449,6 +487,7 @@ Interactive prompts:
 ### Validation Rules
 
 **Slug:**
+
 - Pattern: `/^[a-z0-9]+(?:-[a-z0-9]+)*$/`
 - Lowercase only, alphanumeric + hyphens
 - No leading/trailing hyphens
@@ -457,11 +496,13 @@ Interactive prompts:
 - ⚠️ **Warning:** When creating accounts manually in Firebase Console, you must ensure slug uniqueness yourself - there are no database-level constraints
 
 **Amount:**
+
 - Decimal format: `100.50`, `0`, `-50.25`
 - Max 2 decimal places
 - Range: ±1,000,000,000 (major units)
 
 **Currency:**
+
 - Valid values: `EUR`, `USD`, `UAH`
 - Case-insensitive input
 
@@ -477,6 +518,7 @@ functions/src/cli/
 ```
 
 **Dependencies:**
+
 - `prompts` - Lightweight interactive CLI prompts
 - `ts-node` - Execute TypeScript directly
 - Reuses existing services: `firestore.ts`, `currency.ts`
@@ -490,6 +532,7 @@ The CLI scripts use automatic credential detection:
 3. **Fallback:** Environment variable `GOOGLE_APPLICATION_CREDENTIALS`
 
 Implementation in `services/firestore.ts`:
+
 ```typescript
 if (fs.existsSync(serviceAccountPath)) {
   admin.initializeApp({
@@ -503,6 +546,7 @@ if (fs.existsSync(serviceAccountPath)) {
 ### Firestore Service Functions
 
 **New function added:**
+
 ```typescript
 createAccount(account: Account): Promise<string>
 ```

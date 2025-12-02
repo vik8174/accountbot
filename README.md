@@ -67,29 +67,34 @@ accountbot/
 ### Setup
 
 1. Clone the repository:
+
    ```bash
    git clone <repo-url>
    cd accountbot
    ```
 
 2. Install dependencies:
+
    ```bash
    cd functions
    npm install
    ```
 
 3. Connect Firebase project:
+
    ```bash
    firebase login
    firebase use --add
    ```
 
 4. Set up secrets:
+
    ```bash
    firebase functions:secrets:set TELEGRAM_BOT_TOKEN
    ```
 
 5. Deploy:
+
    ```bash
    npm run build
    firebase deploy --only functions
@@ -98,11 +103,47 @@ accountbot/
    ```
 
 6. Configure bot for group chats (via @BotFather):
+
    - `/mybots` → select bot → **Bot Settings** → **Allow Groups** → Turn on
    - `/mybots` → select bot → **Bot Settings** → **Group Privacy** → Turn off
    - Remove and re-add bot to group for changes to apply
 
-7. Set webhook:
+7. Set up bot commands menu (via @BotFather):
+
+   - `/mybots` → select bot → **Edit Bot** → **Edit Commands**
+   - Paste the following commands:
+     ```
+     start - Show welcome message
+     add - Add a transaction
+     balance - View balances
+     history - Transaction history
+     sync - Sync balance
+     help - Show help
+     ```
+
+8. Set up bot profile (via @BotFather):
+
+   - `/mybots` → select bot → **Edit Bot** → **Edit About**:
+     ```
+     Track transactions across multiple accounts. Add expenses, view balances, sync with real amounts.
+     ```
+   - `/mybots` → select bot → **Edit Bot** → **Edit Description**:
+
+     ```
+     AccountBot helps you track transactions across multiple accounts.
+
+     Features:
+     • Add transactions with amount and description
+     • View balances of all accounts at once
+     • Check recent transaction history
+     • Sync balance when it differs from actual
+
+     Perfect for personal finance tracking, shared expenses, or managing multiple cards and cash accounts.
+
+     Simple. Fast. Accurate.
+     ```
+
+9. Set webhook:
    ```bash
    curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<region>-<project>.cloudfunctions.net/telegramBot"
    ```
@@ -110,6 +151,7 @@ accountbot/
 ## Firestore Data Model
 
 ### Collection: `accounts`
+
 ```
 accounts/{accountId}:
   name: string            // Display name
@@ -119,6 +161,7 @@ accounts/{accountId}:
 ```
 
 ### Collection: `transactions`
+
 ```
 transactions/{txId}:
   accountSlug: string        // Account slug
@@ -133,6 +176,7 @@ transactions/{txId}:
 ```
 
 ### Collection: `sessions`
+
 ```
 sessions/{chatId}:
   step: "amount" | "description" | "sync_amount"
@@ -219,11 +263,13 @@ Bot supports Ukrainian (uk) and English (en) languages via Firebase Remote Confi
 ### Change Language (without redeploy)
 
 **Option 1: Firebase Console**
+
 1. Firebase Console → Remote Config
 2. Create parameter `bot_language` with value `uk` or `en`
 3. Publish changes
 
 **Option 2: Firebase CLI**
+
 ```bash
 # Deploy remote config template
 firebase deploy --only remoteconfig
@@ -238,10 +284,37 @@ Language cache clears on function cold start.
 
 ### Supported Languages
 
-| Code | Language |
-|------|----------|
+| Code | Language            |
+| ---- | ------------------- |
 | `uk` | Ukrainian (default) |
-| `en` | English |
+| `en` | English             |
+
+## Privacy Policy
+
+For BotFather privacy policy setting, use this text:
+
+```
+Privacy Policy for AccountBot
+
+Data We Collect:
+• Telegram user ID and first name (to identify who created transactions)
+• Chat ID (to maintain session state)
+• Transaction data you submit (amounts, descriptions, account selections)
+
+Data Usage:
+• All data is used solely for bot functionality
+• We do not share your data with third parties
+• Data is stored in Firebase Firestore
+
+Data Retention:
+• Transaction history is stored indefinitely
+• Sessions are temporary and expire after inactivity
+
+Your Rights:
+• Contact the bot administrator to request data deletion
+
+This bot is for personal/private use.
+```
 
 ## License
 
