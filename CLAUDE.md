@@ -78,7 +78,7 @@ Bot uses **adaptive keyboards** that automatically switch based on chat type:
 **Reply Keyboard (ReplyKeyboardMarkup):**
 - Used in: Private chats, regular groups, regular supergroups
 - Persistent keyboard at bottom of chat
-- Buttons: 💸 Транзакція, 💰 Баланс, 📋 Історія, 🔄 Синхронізація
+- Buttons: 💸 Add, 💰 Balance, 📋 History, 🔄 Sync
 
 **Inline Keyboard (InlineKeyboardMarkup):**
 - Used in: Forum topics (supergroups with topics enabled)
