@@ -128,7 +128,7 @@ export async function handleSyncAccountCallback(ctx: Context): Promise<void> {
     await ctx.answerCbQuery();
     await ctx.editMessageText(
       `<b>${account.name}</b>\n\n${currentBalanceLabel}\n\n${enterActual}`,
-      { parse_mode: "HTML" as const }
+      { parse_mode: "HTML" as const, ...topicOptions }
     );
   } catch (error) {
     log.error("Error in sync account callback", error as Error, {

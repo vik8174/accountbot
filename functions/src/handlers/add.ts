@@ -166,6 +166,7 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
     await ctx.answerCbQuery();
     await ctx.editMessageText(`${selected}\n\n${enterAmount}`, {
       parse_mode: "HTML",
+      ...topicOptions,
     });
   } catch (error) {
     log.error("Error in account callback", error as Error, {

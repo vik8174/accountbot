@@ -5,13 +5,14 @@ import { Context } from "telegraf";
  * Returns undefined if not in a topic
  */
 export function getMessageThreadId(ctx: Context): number | undefined {
-  if (!ctx.message) {
-    return undefined;
+  // Try ctx.message first (for regular messages and commands)
+  if (ctx.message && "message_thread_id" in ctx.message) {
+    return ctx.message.message_thread_id;
   }
 
-  // Check if message has message_thread_id (forum topic)
-  if ("message_thread_id" in ctx.message) {
-    return ctx.message.message_thread_id;
+  // Try ctx.callbackQuery.message (for inline button clicks)
+  if (ctx.callbackQuery?.message && "message_thread_id" in ctx.callbackQuery.message) {
+    return ctx.callbackQuery.message.message_thread_id;
   }
 
   return undefined;
