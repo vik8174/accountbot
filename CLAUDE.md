@@ -185,6 +185,8 @@ interface Account {
 }
 ```
 
+**Important:** `slug` must be unique across all accounts. This uniqueness is enforced at application level in `createAccount()` function, which checks for existing slugs before creating new accounts.
+
 ### Session
 ```typescript
 interface Session {
@@ -425,7 +427,8 @@ Interactive prompts:
 - Lowercase only, alphanumeric + hyphens
 - No leading/trailing hyphens
 - Length: 2-50 characters
-- Must be unique
+- **Must be unique** (enforced by `createAccount()` in `firestore.ts`)
+- ⚠️ **Warning:** When creating accounts manually in Firebase Console, you must ensure slug uniqueness yourself - there are no database-level constraints
 
 **Amount:**
 - Decimal format: `100.50`, `0`, `-50.25`
@@ -478,7 +481,9 @@ if (fs.existsSync(serviceAccountPath)) {
 createAccount(account: Account): Promise<string>
 ```
 
-- Validates slug uniqueness
+- **Validates slug uniqueness** (throws error if duplicate exists)
 - Creates account document in Firestore
 - Returns document ID
 - Logs operation for audit trail
+
+**Uniqueness enforcement:** Application-level check via `getAccountBySlug()`. Firestore does not have built-in unique constraints.
