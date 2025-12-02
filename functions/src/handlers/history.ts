@@ -3,6 +3,7 @@ import { getTransactions, getAccounts } from "../services/firestore";
 import { log } from "../services/logger";
 import { formatAmount } from "../utils/currency";
 import { formatDate } from "../utils/date";
+import { getAdaptiveKeyboard } from "../utils/keyboard";
 import { getTopicOptions } from "../utils/topics";
 import { t } from "../i18n";
 import { cleanupSession } from "./add";
@@ -62,6 +63,7 @@ export async function handleHistory(ctx: Context): Promise<void> {
 
     await ctx.telegram.sendMessage(ctx.chat!.id, message, {
       parse_mode: "HTML",
+      ...(await getAdaptiveKeyboard(ctx)),
       ...getTopicOptions(ctx),
     });
   } catch (error) {

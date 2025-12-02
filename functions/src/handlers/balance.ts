@@ -2,6 +2,7 @@ import { Context } from "telegraf";
 import { getAccounts } from "../services/firestore";
 import { log } from "../services/logger";
 import { formatBalance } from "../utils/currency";
+import { getAdaptiveKeyboard } from "../utils/keyboard";
 import { getTopicOptions } from "../utils/topics";
 import { t } from "../i18n";
 import { cleanupSession } from "./add";
@@ -45,6 +46,7 @@ export async function handleBalance(ctx: Context): Promise<void> {
 
     await ctx.telegram.sendMessage(ctx.chat!.id, message, {
       parse_mode: "HTML",
+      ...(await getAdaptiveKeyboard(ctx)),
       ...getTopicOptions(ctx),
     });
   } catch (error) {
