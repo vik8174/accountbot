@@ -82,7 +82,6 @@ Bot fully supports Telegram Topics (forum supergroups):
 ### Add a new account
 Use CLI script (recommended):
 ```bash
-cd functions
 npm run add-account
 ```
 
@@ -92,7 +91,6 @@ See `functions/CLI_SETUP.md` for authentication setup.
 
 ### List all accounts
 ```bash
-cd functions
 npm run list-accounts
 ```
 
@@ -101,6 +99,61 @@ Edit the corresponding handler in `handlers/`
 
 ### Verify data integrity
 Use `verifyAccountIntegrity(slug)` from `services/firestore.ts` to check account consistency.
+
+---
+
+## NPM Scripts Organization
+
+### Root Scripts (Developer Interface)
+
+All commands should be run from project root:
+
+**Development:**
+```bash
+npm run build        # Compile TypeScript
+npm run build:watch  # Compile in watch mode
+npm run lint         # Run ESLint
+npm run lint:fix     # Fix ESLint errors
+npm run serve        # Start local emulator
+```
+
+**Deployment:**
+```bash
+npm run deploy            # Deploy functions only
+npm run deploy:all        # Deploy everything
+npm run deploy:config     # Deploy remote config
+npm run deploy:rules      # Deploy Firestore rules
+npm run deploy:indexes    # Deploy Firestore indexes
+npm run logs              # View function logs
+```
+
+**CLI Utilities:**
+```bash
+npm run add-account      # Add new account (interactive)
+npm run list-accounts    # List all accounts
+```
+
+### Functions Scripts (Low-Level)
+
+Located in `functions/package.json`. These are called by root scripts:
+
+**TypeScript:**
+- `build` - Direct TypeScript compilation (`tsc`)
+- `build:watch` - Watch mode compilation
+
+**Linting:**
+- `lint` - ESLint check
+- `lint:fix` - ESLint auto-fix
+
+**CLI:**
+- `add-account` - Direct CLI execution
+- `list-accounts` - Direct CLI execution
+
+**Architecture:**
+- ✅ Root = Firebase commands + delegation to functions
+- ✅ Functions = TypeScript/ESLint/CLI implementation
+- ✅ No duplication between root and functions
+- ✅ Clear separation of concerns
 
 ---
 

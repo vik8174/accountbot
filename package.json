@@ -5,13 +5,17 @@
   "description": "Telegram bot for tracking transactions",
   "scripts": {
     "build": "npm --prefix functions run build",
+    "build:watch": "npm --prefix functions run build:watch",
     "lint": "npm --prefix functions run lint",
+    "lint:fix": "npm --prefix functions run lint:fix",
+    "serve": "npm run build && firebase emulators:start --only functions",
     "deploy": "firebase deploy --only functions",
     "deploy:all": "firebase deploy",
     "deploy:config": "firebase deploy --only remoteconfig",
     "deploy:rules": "firebase deploy --only firestore:rules",
     "deploy:indexes": "firebase deploy --only firestore:indexes",
     "logs": "firebase functions:log",
-    "serve": "npm --prefix functions run serve"
+    "add-account": "npm --prefix functions run add-account",
+    "list-accounts": "npm --prefix functions run list-accounts"
   }
 }
