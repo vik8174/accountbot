@@ -1,70 +1,70 @@
 # CLI Scripts Setup
 
-## Аутентифікація для локальних CLI скриптів
+## Authentication for Local CLI Scripts
 
-CLI скрипти (`add-account`, `list-accounts`) потребують аутентифікації для доступу до Firestore.
+CLI scripts (`add-account`, `list-accounts`) require authentication to access Firestore.
 
-### Варіант 1: Service Account Key (Рекомендовано для локальної розробки)
+### Option 1: Service Account Key (Recommended for local development)
 
-1. **Завантажте service account key:**
-   - Відкрийте Firebase Console: https://console.firebase.google.com/
-   - Виберіть проект (`accountbot-dev` або `accountbot-prod`)
+1. **Download service account key:**
+   - Open Firebase Console: https://console.firebase.google.com/
+   - Select your project (`accountbot-dev` or `accountbot-prod`)
    - Settings → Service Accounts
-   - Натисніть "Generate new private key"
-   - Збережіть файл як `serviceAccountKey.json` в директорії `functions/`
+   - Click "Generate new private key"
+   - Save the file as `serviceAccountKey.json` in the `functions/` directory
 
-2. **Додайте файл в `.gitignore`:**
+2. **Add file to `.gitignore`:**
    ```bash
    echo "serviceAccountKey.json" >> functions/.gitignore
    ```
 
-3. **Запустіть скрипти:**
+3. **Run scripts:**
    ```bash
    cd functions
    npm run list-accounts
    npm run add-account
    ```
 
-### Варіант 2: Google Cloud SDK (Application Default Credentials)
+### Option 2: Google Cloud SDK (Application Default Credentials)
 
-Якщо у вас встановлений Google Cloud SDK:
+If you have Google Cloud SDK installed:
 
 ```bash
 gcloud auth application-default login
 ```
 
-Після цього скрипти автоматично знайдуть credentials.
+After this, scripts will automatically find credentials.
 
-## Використання скриптів
+## Using the Scripts
 
-### Переглянути всі аккаунти
+### List all accounts
 ```bash
 npm run list-accounts
 ```
 
-### Додати новий аккаунт
+### Add a new account
 ```bash
 npm run add-account
 ```
 
-Скрипт запитає:
-- Назву аккаунту (наприклад: "Cash", "Visa Card")
-- Slug (унікальний ідентифікатор, lowercase)
-- Валюту (EUR, USD, UAH)
-- Початковий баланс (за замовчуванням 0)
+The script will prompt for:
+- Account name (e.g., "Cash", "Visa Card")
+- Slug (unique identifier, lowercase)
+- Currency (EUR, USD, UAH)
+- Initial balance (default: 0)
 
 ## Troubleshooting
 
 ### "Unable to detect a Project Id"
 
-**Причина:** Відсутні credentials.
+**Cause:** Missing credentials.
 
-**Рішення:**
-1. Переконайтесь що `serviceAccountKey.json` існує в `functions/`
-2. Або виконайте `gcloud auth application-default login`
+**Solution:**
+1. Ensure `serviceAccountKey.json` exists in `functions/`
+2. Or run `gcloud auth application-default login`
 
 ### "Failed to read credentials from file"
 
-**Причина:** Неправильний шлях до credentials.
+**Cause:** Invalid path to credentials.
 
-**Рішення:** Переконайтесь що service account key знаходиться в `functions/serviceAccountKey.json`
+**Solution:** Ensure service account key is located at `functions/serviceAccountKey.json`
