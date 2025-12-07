@@ -132,7 +132,7 @@ accountbot/
 
    - `/mybots` → select bot → **Edit Bot** → **Edit About**:
      ```
-     Track transactions across multiple accounts. Add expenses, view balances, sync with real amounts.
+     Track transactions across multiple accounts. Add expenses, transfer between accounts, view balances.
      ```
    - `/mybots` → select bot → **Edit Bot** → **Edit Description**:
 
@@ -141,9 +141,11 @@ accountbot/
 
      Features:
      • Add transactions with amount and description
+     • Transfer between accounts with auto exchange rates
      • View balances of all accounts at once
      • Check recent transaction history
      • Sync balance when it differs from actual
+     • Cancel transactions if needed
 
      Perfect for personal finance tracking, shared expenses, or managing multiple cards and cash accounts.
 
