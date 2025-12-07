@@ -175,7 +175,6 @@ transactions/{txId}:
   amount: number             // Amount in minor units (cents), positive or negative
   currency: string           // ISO 4217 code (EUR, USD, UAH)
   description?: string       // Description (optional for sync)
-  type: "add" | "subtract"
   source: "manual" | "sync" | "transfer" | "cancellation"
   createdAt: Timestamp
   createdById: string        // Telegram user ID

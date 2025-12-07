@@ -6,11 +6,6 @@ import { Timestamp } from "firebase-admin/firestore";
 export type CurrencyCode = "EUR" | "USD" | "UAH";
 
 /**
- * Transaction type
- */
-export type TransactionType = "add" | "subtract";
-
-/**
  * Transaction source
  */
 export type TransactionSource = "manual" | "sync" | "transfer" | "cancellation";
@@ -32,8 +27,11 @@ export type SessionStep =
  * Note: balance is stored in minor units (cents/kopiykas)
  */
 export interface Account {
+  /** Display name shown to users */
   name: string;
+  /** Unique identifier used in code and URLs */
   slug: string;
+  /** ISO 4217 currency code */
   currency: CurrencyCode;
   /** Balance in minor units (cents for USD/EUR, kopiykas for UAH) */
   balance: number;
@@ -44,15 +42,17 @@ export interface Account {
  * Note: amount is stored in minor units (cents/kopiykas)
  */
 export interface Transaction {
+  /** Account slug this transaction belongs to */
   accountSlug: string;
-  /** Amount in minor units (cents for USD/EUR, kopiykas for UAH) */
+  /** Amount in minor units (cents for USD/EUR, kopiykas for UAH). Positive = income, negative = expense */
   amount: number;
+  /** ISO 4217 currency code */
   currency: CurrencyCode;
-  /** Optional for sync transactions */
+  /** Transaction description (optional for sync transactions) */
   description?: string;
-  type: TransactionType;
   /** Source of transaction: manual, sync, transfer, or cancellation */
   source: TransactionSource;
+  /** When the transaction was created */
   createdAt: Timestamp;
   /** Telegram user ID who created this transaction */
   createdById: string;
@@ -77,11 +77,13 @@ export interface Transaction {
  * Note: amounts are stored in minor units (cents/kopiykas)
  */
 export interface Session {
+  /** Current step in the interactive flow */
   step: SessionStep;
   /** Account slug for /add and /sync flows */
   accountSlug?: string;
   /** Amount in minor units (cents for USD/EUR, kopiykas for UAH) */
   amount?: number;
+  /** When the session was created */
   createdAt: Timestamp;
   /** Telegram user ID who started this session */
   createdById: string;
@@ -104,9 +106,11 @@ export interface Session {
  * Note: amount should be in minor units (cents/kopiykas)
  */
 export interface CreateTransactionData {
+  /** Account slug to add transaction to */
   accountSlug: string;
   /** Amount in minor units (cents for USD/EUR, kopiykas for UAH) */
   amount: number;
+  /** ISO 4217 currency code */
   currency: CurrencyCode;
   /** Optional for sync transactions */
   description?: string;
@@ -123,15 +127,22 @@ export interface CreateTransactionData {
  * Note: amounts should be in minor units (cents/kopiykas)
  */
 export interface CreateTransferData {
+  /** Source account slug */
   fromAccountSlug: string;
+  /** Destination account slug */
   toAccountSlug: string;
   /** Amount to debit from source (in minor units, positive value) */
   fromAmount: number;
   /** Amount to credit to destination (in minor units, positive value) */
   toAmount: number;
+  /** ISO 4217 currency code of source account */
   fromCurrency: CurrencyCode;
+  /** ISO 4217 currency code of destination account */
   toCurrency: CurrencyCode;
+  /** Optional transfer description */
   description?: string;
+  /** Telegram user ID who created this transfer */
   createdById: string;
+  /** Display name of user who created this transfer */
   createdByName: string;
 }
