@@ -48,6 +48,7 @@ export const uk = {
     noTransactions: "Транзакцій не знайдено.",
     balanceSync: "Синхронізація балансу",
     cancelled: "[СКАСОВАНО]",
+    cancellation: "[СКАСУВАННЯ]",
     transfer: "Переказ",
   },
   common: {

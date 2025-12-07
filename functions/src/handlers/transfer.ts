@@ -46,17 +46,12 @@ export async function handleTransferCommand(ctx: Context): Promise<void> {
 
     accounts.sort((a, b) => a.name.localeCompare(b.name));
 
-    const buttons = accounts.map((acc) =>
+    const keyboard = accounts.map((acc) => [
       Markup.button.callback(
         `${acc.name} (${acc.currency})`,
         `transfer:from:${acc.slug}`
-      )
-    );
-
-    const keyboard = [];
-    for (let i = 0; i < buttons.length; i += 2) {
-      keyboard.push(buttons.slice(i, i + 2));
-    }
+      ),
+    ]);
 
     await ctx.telegram.sendMessage(
       ctx.chat!.id,
@@ -136,17 +131,12 @@ export async function handleTransferFromCallback(ctx: Context): Promise<void> {
       messageThreadId,
     });
 
-    const buttons = otherAccounts.map((acc) =>
+    const keyboard = otherAccounts.map((acc) => [
       Markup.button.callback(
         `${acc.name} (${acc.currency})`,
         `transfer:to:${acc.slug}`
-      )
-    );
-
-    const keyboard = [];
-    for (let i = 0; i < buttons.length; i += 2) {
-      keyboard.push(buttons.slice(i, i + 2));
-    }
+      ),
+    ]);
 
     const fromLabel = await t("transfer.from");
     await ctx.answerCbQuery();

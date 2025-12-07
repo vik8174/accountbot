@@ -48,6 +48,7 @@ export const en = {
     noTransactions: "No transactions found.",
     balanceSync: "Balance sync",
     cancelled: "[CANCELLED]",
+    cancellation: "[CANCELLATION]",
     transfer: "Transfer",
   },
   common: {

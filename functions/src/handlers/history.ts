@@ -41,6 +41,7 @@ export async function handleHistory(ctx: Context): Promise<void> {
     const balanceSyncLabel = await t("history.balanceSync");
     const transferLabel = await t("history.transfer");
     const cancelledLabel = await t("history.cancelled");
+    const cancellationLabel = await t("history.cancellation");
 
     // Build block message
     const MAX_DISPLAY_LENGTH = 30;
@@ -57,7 +58,7 @@ export async function handleHistory(ctx: Context): Promise<void> {
         } else if (tx.source === "transfer") {
           fullDescription = transferLabel;
         } else if (tx.source === "cancellation") {
-          fullDescription = tx.description || cancelledLabel;
+          fullDescription = tx.description || cancellationLabel;
         } else {
           fullDescription = tx.description || "";
         }
