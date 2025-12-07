@@ -10,6 +10,18 @@ import {
   handleSyncCommand,
   handleSyncAccountCallback,
 } from "./handlers/sync";
+import {
+  handleTransferCommand,
+  handleTransferFromCallback,
+  handleTransferToCallback,
+  handleTransferRateCallback,
+} from "./handlers/transfer";
+import {
+  handleCancelCommand,
+  handleCancelSelectCallback,
+  handleCancelConfirmCallback,
+  handleCancelAbortCallback,
+} from "./handlers/cancel";
 import { log } from "./services/logger";
 import { getAdaptiveKeyboard } from "./utils/keyboard";
 import { getTopicOptions } from "./utils/topics";
@@ -65,9 +77,11 @@ export function createBot(token: string): Telegraf {
     const balance = await t("help.balance");
     const history = await t("help.history");
     const sync = await t("help.sync");
+    const transfer = await t("help.transfer");
+    const cancel = await t("help.cancel");
     await ctx.telegram.sendMessage(
       ctx.chat.id,
-      `<b>${title}</b>\n\n${add}\n${balance}\n${history}\n${sync}`,
+      `<b>${title}</b>\n\n${add}\n${balance}\n${history}\n${sync}\n${transfer}\n${cancel}`,
       { parse_mode: "HTML", ...(await getAdaptiveKeyboard(ctx)), ...getTopicOptions(ctx) }
     );
   });
@@ -77,22 +91,38 @@ export function createBot(token: string): Telegraf {
   bot.command("balance", handleBalance);
   bot.command("history", handleHistory);
   bot.command("sync", handleSyncCommand);
+  bot.command("transfer", handleTransferCommand);
+  bot.command("cancel", handleCancelCommand);
 
   // Keyboard button handlers (hears emoji prefix)
   bot.hears(/^💸/, handleAddCommand);
   bot.hears(/^💰/, handleBalance);
   bot.hears(/^📋/, handleHistory);
   bot.hears(/^🔄/, handleSyncCommand);
+  bot.hears(/^↔️/, handleTransferCommand);
+  bot.hears(/^❌/, handleCancelCommand);
 
   // Callback query handlers for account selection
   bot.action(/^add:account:.+$/, handleAccountCallback);
   bot.action(/^sync:account:.+$/, handleSyncAccountCallback);
+
+  // Transfer callbacks
+  bot.action(/^transfer:from:.+$/, handleTransferFromCallback);
+  bot.action(/^transfer:to:.+$/, handleTransferToCallback);
+  bot.action(/^transfer:rate:(accept|custom)$/, handleTransferRateCallback);
+
+  // Cancel callbacks
+  bot.action(/^cancel:select:.+$/, handleCancelSelectCallback);
+  bot.action(/^cancel:confirm:.+$/, handleCancelConfirmCallback);
+  bot.action("cancel:abort", handleCancelAbortCallback);
 
   // Inline keyboard callback handlers (for forum topics)
   bot.action("cmd:add", handleAddCommand);
   bot.action("cmd:balance", handleBalance);
   bot.action("cmd:history", handleHistory);
   bot.action("cmd:sync", handleSyncCommand);
+  bot.action("cmd:transfer", handleTransferCommand);
+  bot.action("cmd:cancel", handleCancelCommand);
 
   // Text message handler for session flow
   bot.on("text", async (ctx, next) => {

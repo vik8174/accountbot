@@ -9,7 +9,8 @@ import { isForumTopic } from "./chat";
 export async function getMainKeyboard() {
   return Markup.keyboard([
     [await t("keyboard.history"), await t("keyboard.add")],
-    [await t("keyboard.balance"), await t("keyboard.sync")],
+    [await t("keyboard.balance"), await t("keyboard.transfer")],
+    [await t("keyboard.sync"), await t("keyboard.cancel")],
   ]).resize().selective(false);
 }
 
@@ -25,7 +26,11 @@ export async function getMainInlineKeyboard() {
     ],
     [
       Markup.button.callback(await t("keyboard.balance"), "cmd:balance"),
+      Markup.button.callback(await t("keyboard.transfer"), "cmd:transfer"),
+    ],
+    [
       Markup.button.callback(await t("keyboard.sync"), "cmd:sync"),
+      Markup.button.callback(await t("keyboard.cancel"), "cmd:cancel"),
     ],
   ]);
 }

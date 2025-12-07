@@ -10,6 +10,8 @@ A Telegram bot for tracking transactions across multiple accounts.
 - `/balance` — View balance of all accounts
 - `/history` — View recent transaction history
 - `/sync` — Sync account balance with actual (creates adjustment transaction)
+- `/transfer` — Transfer between accounts (with automatic exchange rates)
+- `/cancel` — Cancel a transaction (creates reversal)
 
 ## Tech Stack
 
@@ -39,10 +41,13 @@ accountbot/
         │   ├── add.ts            # /add command handler
         │   ├── balance.ts        # /balance command handler
         │   ├── history.ts        # /history command handler
-        │   └── sync.ts           # /sync command handler
+        │   ├── sync.ts           # /sync command handler
+        │   ├── transfer.ts       # /transfer command handler
+        │   └── cancel.ts         # /cancel command handler
         ├── services/
         │   ├── firestore.ts      # Firestore operations
-        │   └── logger.ts         # Structured logging
+        │   ├── logger.ts         # Structured logging
+        │   └── currency-api.ts   # Exchange rate API (Frankfurter)
         ├── utils/
         │   ├── currency.ts       # Currency formatting
         │   ├── date.ts           # Date formatting
@@ -118,6 +123,8 @@ accountbot/
      balance - View balances
      history - Transaction history
      sync - Sync balance
+     transfer - Transfer between accounts
+     cancel - Cancel a transaction
      help - Show help
      ```
 
@@ -169,22 +176,49 @@ transactions/{txId}:
   currency: string           // ISO 4217 code (EUR, USD, UAH)
   description?: string       // Description (optional for sync)
   type: "add" | "subtract"
-  source: "manual" | "sync"  // Transaction source
+  source: "manual" | "sync" | "transfer" | "cancellation"
   createdAt: Timestamp
   createdById: string        // Telegram user ID
   createdByName: string      // Telegram first name
+  balanceAfter: number       // Balance after this transaction
+
+  # Transfer-specific fields
+  linkedTransactionId?: string      // Paired transaction ID
+  transferType?: "outgoing" | "incoming"
+
+  # Cancellation-specific fields
+  cancelledTransactionId?: string   // Original transaction (on reversal)
+  cancelledAt?: Timestamp           // When this was cancelled
+  cancelledByTxnId?: string         // Reversal transaction ID
 ```
 
 ### Collection: `sessions`
 
 ```
-sessions/{chatId}:
-  step: "amount" | "description" | "sync_amount"
+sessions/{chatId:userId}:
+  step: "amount" | "description" | "sync_amount" | "transfer_to" | "transfer_amount" | "transfer_received" | "transfer_description"
   accountSlug: string        // Account slug
   amount?: number            // Amount in minor units (cents)
   createdAt: Timestamp
   createdById: string        // Telegram user ID who started
+  messageIds?: number[]      // Message IDs to cleanup
+
+  # Transfer-specific fields
+  fromAccountSlug?: string   // Source account
+  toAccountSlug?: string     // Target account
+  receivedAmount?: number    // Received amount (cross-currency)
+  exchangeRate?: number      // Exchange rate used
 ```
+
+### Firestore Indexes
+
+Required composite indexes (defined in `firestore.indexes.json`):
+
+| Collection | Fields | Purpose |
+|------------|--------|---------|
+| `transactions` | `createdById` ASC, `createdAt` DESC | `/cancel` — fetch user's transactions |
+
+Deploy indexes: `firebase deploy --only firestore:indexes`
 
 ## Development
 

@@ -28,9 +28,10 @@ Telegram → Webhook → Cloud Function → Telegraf → Firestore
 | ------------------------------------- | ---------------------------------------------------- |
 | `functions/src/index.ts`              | HTTP endpoint for webhook                            |
 | `functions/src/bot.ts`                | Telegraf bot, command registration                   |
-| `functions/src/handlers/*.ts`         | Command logic: /add, /balance, /history, /sync       |
+| `functions/src/handlers/*.ts`         | Command logic: /add, /balance, /history, /sync, /transfer, /cancel |
 | `functions/src/services/firestore.ts` | Firestore CRUD operations                            |
 | `functions/src/services/logger.ts`    | Firebase structured logging                          |
+| `functions/src/services/currency-api.ts` | Exchange rate API (Frankfurter ECB rates)         |
 | `functions/src/types/index.ts`        | TypeScript interfaces                                |
 | `functions/src/i18n/*.ts`             | Localization (uk/en)                                 |
 | `functions/src/utils/keyboard.ts`     | Adaptive keyboards (reply/inline) with emoji buttons |
@@ -70,7 +71,7 @@ Without composite key, users in group chats would interfere with each other's se
 
 ### Message Cleanup Pattern
 
-The `/add` and `/sync` flows collect all message IDs throughout the flow and batch-delete them at completion:
+The `/add`, `/sync`, and `/transfer` flows collect all message IDs throughout the flow and batch-delete them at completion:
 
 1. Collect IDs: command message, bot prompts, user inputs
 2. Store in `session.messageIds[]`
@@ -120,6 +121,34 @@ bot.action(/^add:account:.+$/, handleCallback); // Account selection
 
 All 4 operations commit together or all fail.
 
+### Transfer Atomic Transaction
+
+`createTransferAndUpdateBalances()` creates 2 linked transactions in a single Firestore transaction:
+
+1. Read both account balances
+2. Create outgoing transaction (negative amount, `transferType: "outgoing"`)
+3. Create incoming transaction (positive amount, `transferType: "incoming"`)
+4. Link both via `linkedTransactionId`
+5. Update both account balances
+
+For cross-currency transfers, uses Frankfurter API for ECB exchange rates with fallback to manual input.
+
+### Cancellation Reversal Pattern
+
+`createCancellationAndUpdateBalance()` creates reversal instead of deleting:
+
+1. Read original transaction
+2. Verify not already cancelled
+3. Create reversal transaction (opposite amount, `source: "cancellation"`)
+4. Mark original with `cancelledAt` and `cancelledByTxnId`
+5. Update account balance
+
+**Two-way references:**
+- Reversal has `cancelledTransactionId` → points to original
+- Original has `cancelledByTxnId` → points to reversal
+
+For transfers, `createTransferCancellation()` cancels both legs atomically.
+
 ### Async Localization
 
 The `t()` function is **async** (fetches language from Firebase Remote Config):
@@ -155,6 +184,35 @@ const message = t("add.selectAccount");
 4. Bot: creates session with `step: "sync_amount"`, asks for new balance
 5. User: enters number (must be ≥ 0)
 6. Bot: calculates adjustment, creates transaction, shows before/after
+
+### /transfer Flow
+
+1. User: `/transfer` or ↔️ button
+2. Bot: FROM account selection
+3. User: clicks account → callback `transfer:from:<slug>`
+4. Bot: TO account selection (excludes FROM)
+5. User: clicks account → callback `transfer:to:<slug>`
+6. Bot: asks for amount
+7. User: enters amount
+8. **(Cross-currency)** Bot: fetches exchange rate, shows accept/custom buttons
+9. User: accepts auto rate or enters custom received amount
+10. Bot: asks for description (enter `-` to skip)
+11. User: enters description or `-`
+12. Bot: creates 2 linked transactions atomically, shows result
+
+### /cancel Flow
+
+1. User: `/cancel`
+2. Bot: shows user's recent transactions (max 10, excludes cancellations)
+3. User: clicks transaction → callback `cancel:select:<id>`
+4. Bot: confirmation dialog with transaction details
+5. User: confirms → callback `cancel:confirm:<id>`
+6. Bot: creates reversal transaction, marks original as cancelled
+
+**Validation:**
+- Only transaction author can cancel
+- Cannot cancel cancellations
+- Cannot cancel already-cancelled transactions
 
 ---
 
@@ -255,6 +313,32 @@ Visa card
 Previous +729.00 $
 Adjustment -679.00 $
 New balance +50.00 $
+```
+
+**Transfer Success:**
+```
+✅ Transfer Complete
+
+Cash -100.00 €
+Monobank +110.00 $
+Rate: 1 EUR = 1.10 USD
+```
+
+**Cancel Success:**
+```
+✅ Transaction Cancelled
+
+Visa card
+Original: +456.00 $
+Reversal: -456.00 $
+```
+
+**Transfer Cancelled:**
+```
+✅ Transfer Cancelled
+
+Cash +100.00 €
+Monobank -110.00 $
 ```
 
 ---

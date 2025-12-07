@@ -13,6 +13,11 @@ import { toMinorUnits, formatAmount } from "../utils/currency";
 import { getAdaptiveKeyboard } from "../utils/keyboard";
 import { getTopicOptions } from "../utils/topics";
 import { handleSyncAmountInput } from "./sync";
+import {
+  handleTransferAmountInput,
+  handleTransferReceivedInput,
+  handleTransferDescriptionInput,
+} from "./transfer";
 import { t } from "../i18n";
 
 /**
@@ -211,7 +216,7 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
       return await handleAmountInput(
         ctx,
         sessionKey,
-        session.accountSlug,
+        session.accountSlug!,
         telegramUserId,
         text,
         session.messageIds || [],
@@ -223,7 +228,7 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
       return await handleDescriptionInput(
         ctx,
         sessionKey,
-        session.accountSlug,
+        session.accountSlug!,
         session.amount!,
         telegramUserId,
         text,
@@ -236,12 +241,31 @@ export async function handleSessionMessage(ctx: Context): Promise<boolean> {
       return await handleSyncAmountInput(
         ctx,
         sessionKey,
-        session.accountSlug,
+        session.accountSlug!,
         telegramUserId,
         text,
         session.messageIds || [],
         session.messageThreadId
       );
+    }
+
+    // Transfer flow steps
+    if (session.step === "transfer_amount") {
+      return await handleTransferAmountInput(ctx, sessionKey, session, text);
+    }
+
+    if (session.step === "transfer_received") {
+      // Check if user has already accepted a rate (receivedAmount is set)
+      // In that case, this is a custom amount input
+      if (session.receivedAmount === undefined) {
+        return await handleTransferReceivedInput(ctx, sessionKey, session, text);
+      }
+      // If receivedAmount is already set, user might be typing something else
+      return false;
+    }
+
+    if (session.step === "transfer_description") {
+      return await handleTransferDescriptionInput(ctx, sessionKey, session, text);
     }
 
     return false;

@@ -5,6 +5,7 @@ import {
   Transaction,
   Session,
   CreateTransactionData,
+  CreateTransferData,
   SessionStep,
 } from "../types";
 import { log } from "./logger";
@@ -214,21 +215,29 @@ export async function setSession(
   sessionKey: string,
   data: {
     step: SessionStep;
-    accountSlug: string;
+    accountSlug?: string;
     amount?: number;
     createdById: string;
     messageIds?: number[];
     messageThreadId?: number;
+    fromAccountSlug?: string;
+    toAccountSlug?: string;
+    receivedAmount?: number;
+    exchangeRate?: number;
   }
 ): Promise<void> {
   const session: Session = {
     step: data.step,
-    accountSlug: data.accountSlug,
     createdAt: Timestamp.now(),
     createdById: data.createdById,
+    ...(data.accountSlug !== undefined && { accountSlug: data.accountSlug }),
     ...(data.amount !== undefined && { amount: data.amount }),
     ...(data.messageIds && { messageIds: data.messageIds }),
     ...(data.messageThreadId !== undefined && { messageThreadId: data.messageThreadId }),
+    ...(data.fromAccountSlug !== undefined && { fromAccountSlug: data.fromAccountSlug }),
+    ...(data.toAccountSlug !== undefined && { toAccountSlug: data.toAccountSlug }),
+    ...(data.receivedAmount !== undefined && { receivedAmount: data.receivedAmount }),
+    ...(data.exchangeRate !== undefined && { exchangeRate: data.exchangeRate }),
   };
 
   await sessionsRef.doc(sessionKey).set(session);
@@ -306,4 +315,333 @@ export async function verifyAccountIntegrity(slug: string): Promise<boolean> {
   });
 
   return true;
+}
+
+// ============ TRANSFERS ============
+
+/**
+ * Create transfer between two accounts atomically.
+ * Creates two linked transactions and updates both account balances.
+ * Returns [sourceTransactionId, destTransactionId].
+ */
+export async function createTransferAndUpdateBalances(
+  data: CreateTransferData
+): Promise<[string, string]> {
+  const result = await db.runTransaction(async (firestoreTransaction) => {
+    // 1. Get both accounts
+    const [fromSnapshot, toSnapshot] = await Promise.all([
+      firestoreTransaction.get(
+        accountsRef.where("slug", "==", data.fromAccountSlug).limit(1)
+      ),
+      firestoreTransaction.get(
+        accountsRef.where("slug", "==", data.toAccountSlug).limit(1)
+      ),
+    ]);
+
+    if (fromSnapshot.empty) {
+      throw new Error(`Source account not found: ${data.fromAccountSlug}`);
+    }
+    if (toSnapshot.empty) {
+      throw new Error(`Destination account not found: ${data.toAccountSlug}`);
+    }
+
+    const fromDoc = fromSnapshot.docs[0];
+    const toDoc = toSnapshot.docs[0];
+    const fromAccount = fromDoc.data() as Account;
+    const toAccount = toDoc.data() as Account;
+
+    // 2. Calculate new balances
+    const fromBalanceAfter = fromAccount.balance - Math.abs(data.fromAmount);
+    const toBalanceAfter = toAccount.balance + Math.abs(data.toAmount);
+
+    // 3. Create both transaction documents
+    const fromTxnRef = transactionsRef.doc();
+    const toTxnRef = transactionsRef.doc();
+    const now = Timestamp.now();
+
+    const baseTxn = {
+      source: "transfer" as const,
+      createdAt: now,
+      createdById: data.createdById,
+      createdByName: data.createdByName,
+      ...(data.description && { description: data.description }),
+    };
+
+    // Source transaction (outgoing - negative)
+    const fromTxn: Transaction = {
+      ...baseTxn,
+      accountSlug: data.fromAccountSlug,
+      amount: -Math.abs(data.fromAmount),
+      currency: data.fromCurrency,
+      type: "subtract",
+      balanceAfter: fromBalanceAfter,
+      linkedTransactionId: toTxnRef.id,
+      transferType: "outgoing",
+    };
+
+    // Destination transaction (incoming - positive)
+    const toTxn: Transaction = {
+      ...baseTxn,
+      accountSlug: data.toAccountSlug,
+      amount: Math.abs(data.toAmount),
+      currency: data.toCurrency,
+      type: "add",
+      balanceAfter: toBalanceAfter,
+      linkedTransactionId: fromTxnRef.id,
+      transferType: "incoming",
+    };
+
+    // 4. Write all in transaction
+    firestoreTransaction.set(fromTxnRef, fromTxn);
+    firestoreTransaction.set(toTxnRef, toTxn);
+    firestoreTransaction.update(fromDoc.ref, { balance: fromBalanceAfter });
+    firestoreTransaction.update(toDoc.ref, { balance: toBalanceAfter });
+
+    return [fromTxnRef.id, toTxnRef.id] as [string, string];
+  });
+
+  log.info("Transfer created", {
+    sourceTransactionId: result[0],
+    destTransactionId: result[1],
+    fromAccount: data.fromAccountSlug,
+    toAccount: data.toAccountSlug,
+    fromAmount: data.fromAmount,
+    toAmount: data.toAmount,
+  });
+
+  return result;
+}
+
+// ============ CANCELLATIONS ============
+
+/**
+ * Get a single transaction by ID
+ */
+export async function getTransactionById(
+  id: string
+): Promise<(Transaction & { id: string }) | null> {
+  const doc = await transactionsRef.doc(id).get();
+  if (!doc.exists) return null;
+  return { id: doc.id, ...(doc.data() as Transaction) };
+}
+
+/**
+ * Get recent transactions created by a specific user
+ */
+export async function getUserTransactions(
+  userId: string,
+  limit: number = 10
+): Promise<(Transaction & { id: string })[]> {
+  const snapshot = await transactionsRef
+    .where("createdById", "==", userId)
+    .orderBy("createdAt", "desc")
+    .limit(limit)
+    .get();
+
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...(doc.data() as Transaction),
+  }));
+}
+
+/**
+ * Create cancellation transaction and update balance atomically.
+ * Marks original transaction as cancelled.
+ * Returns cancellation transaction ID.
+ */
+export async function createCancellationAndUpdateBalance(
+  originalTxnId: string,
+  createdById: string,
+  createdByName: string
+): Promise<string> {
+  const result = await db.runTransaction(async (firestoreTransaction) => {
+    // 1. Get original transaction
+    const originalRef = transactionsRef.doc(originalTxnId);
+    const originalDoc = await firestoreTransaction.get(originalRef);
+
+    if (!originalDoc.exists) {
+      throw new Error(`Transaction not found: ${originalTxnId}`);
+    }
+
+    const original = originalDoc.data() as Transaction;
+
+    // 2. Validate
+    if (original.source === "cancellation") {
+      throw new Error("Cannot cancel a cancellation transaction");
+    }
+    if (original.cancelledAt) {
+      throw new Error("Transaction already cancelled");
+    }
+
+    // 3. Get account
+    const accountSnapshot = await firestoreTransaction.get(
+      accountsRef.where("slug", "==", original.accountSlug).limit(1)
+    );
+    if (accountSnapshot.empty) {
+      throw new Error(`Account not found: ${original.accountSlug}`);
+    }
+    const accountDoc = accountSnapshot.docs[0];
+    const account = accountDoc.data() as Account;
+
+    // 4. Calculate reversal amount and new balance
+    const reversalAmount = -original.amount;
+    const newBalance = account.balance + reversalAmount;
+
+    // 5. Create cancellation transaction
+    const cancelRef = transactionsRef.doc();
+    const now = Timestamp.now();
+
+    const cancelTxn: Transaction = {
+      accountSlug: original.accountSlug,
+      amount: reversalAmount,
+      currency: original.currency,
+      type: reversalAmount >= 0 ? "add" : "subtract",
+      source: "cancellation",
+      createdAt: now,
+      createdById,
+      createdByName,
+      balanceAfter: newBalance,
+      cancelledTransactionId: originalTxnId,
+    };
+
+    // 6. Write cancellation, update original, update balance
+    firestoreTransaction.set(cancelRef, cancelTxn);
+    firestoreTransaction.update(originalRef, {
+      cancelledAt: now,
+      cancelledByTxnId: cancelRef.id,
+    });
+    firestoreTransaction.update(accountDoc.ref, { balance: newBalance });
+
+    return cancelRef.id;
+  });
+
+  log.info("Transaction cancelled", {
+    originalTxnId,
+    cancellationTxnId: result,
+    createdById,
+  });
+
+  return result;
+}
+
+/**
+ * Cancel a transfer transaction (both legs) atomically.
+ * Returns [sourceCancelId, destCancelId].
+ */
+export async function createTransferCancellation(
+  originalTxnId: string,
+  createdById: string,
+  createdByName: string
+): Promise<[string, string]> {
+  const result = await db.runTransaction(async (firestoreTransaction) => {
+    // 1. Get original transaction
+    const originalRef = transactionsRef.doc(originalTxnId);
+    const originalDoc = await firestoreTransaction.get(originalRef);
+
+    if (!originalDoc.exists) {
+      throw new Error(`Transaction not found: ${originalTxnId}`);
+    }
+
+    const original = originalDoc.data() as Transaction;
+
+    // Must be a transfer
+    if (original.source !== "transfer" || !original.linkedTransactionId) {
+      throw new Error("Not a transfer transaction");
+    }
+
+    // 2. Get linked transaction
+    const linkedRef = transactionsRef.doc(original.linkedTransactionId);
+    const linkedDoc = await firestoreTransaction.get(linkedRef);
+
+    if (!linkedDoc.exists) {
+      throw new Error(`Linked transaction not found: ${original.linkedTransactionId}`);
+    }
+
+    const linked = linkedDoc.data() as Transaction;
+
+    // 3. Validate neither is cancelled
+    if (original.cancelledAt || linked.cancelledAt) {
+      throw new Error("Transfer already cancelled");
+    }
+
+    // 4. Get both accounts
+    const [fromSnapshot, toSnapshot] = await Promise.all([
+      firestoreTransaction.get(
+        accountsRef.where("slug", "==", original.accountSlug).limit(1)
+      ),
+      firestoreTransaction.get(
+        accountsRef.where("slug", "==", linked.accountSlug).limit(1)
+      ),
+    ]);
+
+    if (fromSnapshot.empty || toSnapshot.empty) {
+      throw new Error("One or both accounts not found");
+    }
+
+    const fromDoc = fromSnapshot.docs[0];
+    const toDoc = toSnapshot.docs[0];
+    const fromAccount = fromDoc.data() as Account;
+    const toAccount = toDoc.data() as Account;
+
+    // 5. Calculate new balances (reverse both amounts)
+    const fromNewBalance = fromAccount.balance - original.amount;
+    const toNewBalance = toAccount.balance - linked.amount;
+
+    // 6. Create both cancellation transactions
+    const fromCancelRef = transactionsRef.doc();
+    const toCancelRef = transactionsRef.doc();
+    const now = Timestamp.now();
+
+    const fromCancelTxn: Transaction = {
+      accountSlug: original.accountSlug,
+      amount: -original.amount,
+      currency: original.currency,
+      type: -original.amount >= 0 ? "add" : "subtract",
+      source: "cancellation",
+      createdAt: now,
+      createdById,
+      createdByName,
+      balanceAfter: fromNewBalance,
+      cancelledTransactionId: originalTxnId,
+      linkedTransactionId: toCancelRef.id,
+    };
+
+    const toCancelTxn: Transaction = {
+      accountSlug: linked.accountSlug,
+      amount: -linked.amount,
+      currency: linked.currency,
+      type: -linked.amount >= 0 ? "add" : "subtract",
+      source: "cancellation",
+      createdAt: now,
+      createdById,
+      createdByName,
+      balanceAfter: toNewBalance,
+      cancelledTransactionId: original.linkedTransactionId,
+      linkedTransactionId: fromCancelRef.id,
+    };
+
+    // 7. Write everything
+    firestoreTransaction.set(fromCancelRef, fromCancelTxn);
+    firestoreTransaction.set(toCancelRef, toCancelTxn);
+    firestoreTransaction.update(originalRef, {
+      cancelledAt: now,
+      cancelledByTxnId: fromCancelRef.id,
+    });
+    firestoreTransaction.update(linkedRef, {
+      cancelledAt: now,
+      cancelledByTxnId: toCancelRef.id,
+    });
+    firestoreTransaction.update(fromDoc.ref, { balance: fromNewBalance });
+    firestoreTransaction.update(toDoc.ref, { balance: toNewBalance });
+
+    return [fromCancelRef.id, toCancelRef.id] as [string, string];
+  });
+
+  log.info("Transfer cancelled", {
+    originalTxnId,
+    cancellationIds: result,
+    createdById,
+  });
+
+  return result;
 }

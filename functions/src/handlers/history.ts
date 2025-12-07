@@ -37,8 +37,10 @@ export async function handleHistory(ctx: Context): Promise<void> {
     const accounts = await getAccounts();
     const accountMap = new Map(accounts.map((a) => [a.slug, a.name]));
 
-    // Get balance sync translation once
+    // Get translations once
     const balanceSyncLabel = await t("history.balanceSync");
+    const transferLabel = await t("history.transfer");
+    const cancelledLabel = await t("history.cancelled");
 
     // Build block message
     const MAX_DISPLAY_LENGTH = 30;
@@ -47,8 +49,24 @@ export async function handleHistory(ctx: Context): Promise<void> {
         const date = await formatDate(tx.createdAt);
         const accountName = accountMap.get(tx.accountSlug) || tx.accountSlug;
         const amountStr = formatAmount(tx.amount, tx.currency);
-        const fullDescription =
-          tx.source === "sync" ? balanceSyncLabel : tx.description || "";
+
+        // Determine description based on source
+        let fullDescription: string;
+        if (tx.source === "sync") {
+          fullDescription = balanceSyncLabel;
+        } else if (tx.source === "transfer") {
+          fullDescription = transferLabel;
+        } else if (tx.source === "cancellation") {
+          fullDescription = tx.description || cancelledLabel;
+        } else {
+          fullDescription = tx.description || "";
+        }
+
+        // Add cancelled marker if transaction was cancelled
+        if (tx.cancelledAt) {
+          fullDescription = `${fullDescription} ${cancelledLabel}`;
+        }
+
         const description =
           fullDescription.length > MAX_DISPLAY_LENGTH
             ? fullDescription.slice(0, MAX_DISPLAY_LENGTH) + "..."
