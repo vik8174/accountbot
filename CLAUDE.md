@@ -36,7 +36,7 @@ Telegram → Webhook → Cloud Function → Telegraf → Firestore
 | `functions/src/i18n/*.ts`             | Localization (uk/en)                                 |
 | `functions/src/utils/keyboard.ts`     | Adaptive keyboards (reply/inline) with emoji buttons |
 | `functions/src/utils/chat.ts`         | Chat type detection (forum topics, private chats)    |
-| `functions/src/utils/currency.ts`     | Amount/balance formatting, minor units conversion    |
+| `functions/src/utils/currency.ts`     | Amount parsing, formatting, minor units conversion   |
 | `functions/src/utils/topics.ts`       | Forum topics (supergroups) support                   |
 
 ---
@@ -53,8 +53,17 @@ Stored as:   10050  (minor units - cents)
 Displayed:   +100.50 $
 ```
 
+**Input parsing:**
+- `parseAmount(text, options)` — user input → validated major units
+
+Supported formats: `2.25`, `2,25`, `2`, `2.`, `-5`
+
+Options: `allowNegative` (default: true), `allowZero` (default: false), `maxAmount` (default: 1,000,000)
+
+Returns `{ success: true, value }` or `{ success: false, error }`.
+
 **Conversion functions:**
-- `toMinorUnits(majorValue)` — user input → database
+- `toMinorUnits(majorValue)` — major units → database (cents)
 - `formatAmount(minorValue, currency)` — database → display
 
 **Critical:** Never mix minor/major units in calculations. Always convert at entry/exit points.
@@ -244,6 +253,7 @@ await ctx.telegram.sendMessage(
 | Not validating `chatId`/`userId` | Crashes on edge cases | Check before any session operation |
 | Not catching deletion errors | Handler fails if message already deleted | Wrap in try-catch, ignore errors |
 | Forgetting `await t()` | Returns Promise object, not string | Always await translation function |
+| Using raw `parseFloat` for amounts | Doesn't handle comma, no validation | Use `parseAmount()` utility |
 
 ---
 
