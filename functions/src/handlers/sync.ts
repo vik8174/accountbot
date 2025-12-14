@@ -8,7 +8,7 @@ import {
   createTransactionAndUpdateBalance,
 } from "../services/firestore";
 import { log } from "../services/logger";
-import { toMinorUnits, formatAmount, formatBalance } from "../utils/currency";
+import { toMinorUnits, formatAmount, formatBalance, parseAmount } from "../utils/currency";
 import { getAdaptiveKeyboard } from "../utils/keyboard";
 import { getTopicOptions } from "../utils/topics";
 import { t } from "../i18n";
@@ -155,8 +155,6 @@ export async function handleSyncAmountInput(
   messageIds: number[] = [],
   messageThreadId?: number
 ): Promise<boolean> {
-  const MAX_AMOUNT = 1000000;
-
   // Save user's amount message ID
   const userMessageId = ctx.message && "message_id" in ctx.message
     ? ctx.message.message_id
@@ -165,49 +163,25 @@ export async function handleSyncAmountInput(
   const topicOptions = messageThreadId ? { message_thread_id: messageThreadId } : {};
 
   // Parse amount (user enters in major units like 250.00)
-  const normalizedText = text.replace(",", ".");
-  const newBalanceMajor = parseFloat(normalizedText);
+  const result = parseAmount(text, { allowNegative: false, allowZero: true });
 
-  // Not a number
-  if (isNaN(newBalanceMajor)) {
-    await ctx.telegram.sendMessage(
-      ctx.chat!.id,
-      await t("add.invalidNumber"),
-      topicOptions
-    );
+  if (!result.success) {
+    const errorMessages: Record<string, string> = {
+      invalid: "add.invalidNumber",
+      zero: "add.invalidNumber",
+      negative: "sync.negativeNotAllowed",
+      max_decimals: "add.maxDecimals",
+      max_amount: "sync.maxBalance",
+    };
+    const messageKey = errorMessages[result.error];
+    const message = result.error === "max_amount"
+      ? await t(messageKey, { max: (1000000).toLocaleString() })
+      : await t(messageKey);
+    await ctx.telegram.sendMessage(ctx.chat!.id, message, topicOptions);
     return true;
   }
 
-  // Negative balance not allowed
-  if (newBalanceMajor < 0) {
-    await ctx.telegram.sendMessage(
-      ctx.chat!.id,
-      await t("sync.negativeNotAllowed"),
-      topicOptions
-    );
-    return true;
-  }
-
-  // Maximum 2 decimal places
-  const decimalPart = normalizedText.split(".")[1];
-  if (decimalPart && decimalPart.length > 2) {
-    await ctx.telegram.sendMessage(
-      ctx.chat!.id,
-      await t("add.maxDecimals"),
-      topicOptions
-    );
-    return true;
-  }
-
-  // Amount limit
-  if (newBalanceMajor > MAX_AMOUNT) {
-    await ctx.telegram.sendMessage(
-      ctx.chat!.id,
-      await t("sync.maxBalance", { max: MAX_AMOUNT.toLocaleString() }),
-      topicOptions
-    );
-    return true;
-  }
+  const newBalanceMajor = result.value;
 
   // Get account details
   const account = await getAccountBySlug(accountSlug);

@@ -9,7 +9,7 @@ import {
   createTransactionAndUpdateBalance,
 } from "../services/firestore";
 import { log } from "../services/logger";
-import { toMinorUnits, formatAmount } from "../utils/currency";
+import { toMinorUnits, formatAmount, parseAmount } from "../utils/currency";
 import { getAdaptiveKeyboard } from "../utils/keyboard";
 import { getTopicOptions } from "../utils/topics";
 import { handleSyncAmountInput } from "./sync";
@@ -289,52 +289,34 @@ async function handleAmountInput(
   messageIds: number[],
   messageThreadId?: number
 ): Promise<boolean> {
-  const MAX_AMOUNT = 1000000;
-
   // Save user's amount message ID
   const userMessageId = ctx.message && "message_id" in ctx.message
     ? ctx.message.message_id
     : null;
 
-  // Parse amount (user enters in major units like 2.50)
-  const normalizedText = text.replace(",", ".");
-  const amountMajor = parseFloat(normalizedText);
-
   const topicOptions = messageThreadId ? { message_thread_id: messageThreadId } : {};
 
-  // Not a number or zero
-  if (isNaN(amountMajor) || amountMajor === 0) {
-    await ctx.telegram.sendMessage(
-      ctx.chat!.id,
-      await t("add.invalidNumber"),
-      topicOptions
-    );
-    return true;
-  }
+  // Parse amount (user enters in major units like 2.50)
+  const result = parseAmount(text, { allowNegative: true, allowZero: false });
 
-  // Maximum 2 decimal places
-  const decimalPart = normalizedText.split(".")[1];
-  if (decimalPart && decimalPart.length > 2) {
-    await ctx.telegram.sendMessage(
-      ctx.chat!.id,
-      await t("add.maxDecimals"),
-      topicOptions
-    );
-    return true;
-  }
-
-  // Amount limit
-  if (Math.abs(amountMajor) > MAX_AMOUNT) {
-    await ctx.telegram.sendMessage(
-      ctx.chat!.id,
-      await t("add.maxAmount", { max: MAX_AMOUNT.toLocaleString() }),
-      topicOptions
-    );
+  if (!result.success) {
+    const errorMessages: Record<string, string> = {
+      invalid: "add.invalidNumber",
+      zero: "add.invalidNumber",
+      negative: "add.invalidNumber",
+      max_decimals: "add.maxDecimals",
+      max_amount: "add.maxAmount",
+    };
+    const messageKey = errorMessages[result.error];
+    const message = result.error === "max_amount"
+      ? await t(messageKey, { max: (1000000).toLocaleString() })
+      : await t(messageKey);
+    await ctx.telegram.sendMessage(ctx.chat!.id, message, topicOptions);
     return true;
   }
 
   // Convert to minor units (cents) for storage
-  const amountMinor = toMinorUnits(amountMajor);
+  const amountMinor = toMinorUnits(result.value);
 
   // Collect message IDs: previous + user's amount message + bot's response
   const updatedMessageIds = [...messageIds];

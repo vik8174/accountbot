@@ -10,14 +10,13 @@ import {
 } from "../services/firestore";
 import { convertCurrency, formatExchangeRate } from "../services/currency-api";
 import { log } from "../services/logger";
-import { toMinorUnits, formatAmount } from "../utils/currency";
+import { toMinorUnits, formatAmount, parseAmount } from "../utils/currency";
 import { getAdaptiveKeyboard } from "../utils/keyboard";
 import { getTopicOptions } from "../utils/topics";
 import { cleanupSession } from "./add";
 import { t } from "../i18n";
 import { Session } from "../types";
 
-const MAX_AMOUNT = 1000000;
 const MAX_DESCRIPTION_LENGTH = 100;
 const SKIP_COMMANDS = ["-", "/skip", "skip", ""];
 
@@ -253,39 +252,26 @@ export async function handleTransferAmountInput(
     ? { message_thread_id: session.messageThreadId }
     : {};
 
-  const normalizedText = text.replace(",", ".");
-  const amountMajor = parseFloat(normalizedText);
+  // Parse amount
+  const result = parseAmount(text, { allowNegative: false, allowZero: false });
 
-  // Validation
-  if (isNaN(amountMajor) || amountMajor <= 0) {
-    await ctx.telegram.sendMessage(
-      ctx.chat!.id,
-      await t("add.invalidNumber"),
-      topicOptions
-    );
+  if (!result.success) {
+    const errorMessages: Record<string, string> = {
+      invalid: "add.invalidNumber",
+      zero: "add.invalidNumber",
+      negative: "add.invalidNumber",
+      max_decimals: "add.maxDecimals",
+      max_amount: "add.maxAmount",
+    };
+    const messageKey = errorMessages[result.error];
+    const message = result.error === "max_amount"
+      ? await t(messageKey, { max: (1000000).toLocaleString() })
+      : await t(messageKey);
+    await ctx.telegram.sendMessage(ctx.chat!.id, message, topicOptions);
     return true;
   }
 
-  const decimalPart = normalizedText.split(".")[1];
-  if (decimalPart && decimalPart.length > 2) {
-    await ctx.telegram.sendMessage(
-      ctx.chat!.id,
-      await t("add.maxDecimals"),
-      topicOptions
-    );
-    return true;
-  }
-
-  if (amountMajor > MAX_AMOUNT) {
-    await ctx.telegram.sendMessage(
-      ctx.chat!.id,
-      await t("add.maxAmount", { max: MAX_AMOUNT.toLocaleString() }),
-      topicOptions
-    );
-    return true;
-  }
-
-  const amountMinor = toMinorUnits(amountMajor);
+  const amountMinor = toMinorUnits(result.value);
 
   const [fromAccount, toAccount] = await Promise.all([
     getAccountBySlug(session.fromAccountSlug!),
@@ -526,38 +512,26 @@ export async function handleTransferReceivedInput(
     ? { message_thread_id: session.messageThreadId }
     : {};
 
-  const normalizedText = text.replace(",", ".");
-  const amountMajor = parseFloat(normalizedText);
+  // Parse amount
+  const result = parseAmount(text, { allowNegative: false, allowZero: false });
 
-  if (isNaN(amountMajor) || amountMajor <= 0) {
-    await ctx.telegram.sendMessage(
-      ctx.chat!.id,
-      await t("add.invalidNumber"),
-      topicOptions
-    );
+  if (!result.success) {
+    const errorMessages: Record<string, string> = {
+      invalid: "add.invalidNumber",
+      zero: "add.invalidNumber",
+      negative: "add.invalidNumber",
+      max_decimals: "add.maxDecimals",
+      max_amount: "add.maxAmount",
+    };
+    const messageKey = errorMessages[result.error];
+    const message = result.error === "max_amount"
+      ? await t(messageKey, { max: (1000000).toLocaleString() })
+      : await t(messageKey);
+    await ctx.telegram.sendMessage(ctx.chat!.id, message, topicOptions);
     return true;
   }
 
-  const decimalPart = normalizedText.split(".")[1];
-  if (decimalPart && decimalPart.length > 2) {
-    await ctx.telegram.sendMessage(
-      ctx.chat!.id,
-      await t("add.maxDecimals"),
-      topicOptions
-    );
-    return true;
-  }
-
-  if (amountMajor > MAX_AMOUNT) {
-    await ctx.telegram.sendMessage(
-      ctx.chat!.id,
-      await t("add.maxAmount", { max: MAX_AMOUNT.toLocaleString() }),
-      topicOptions
-    );
-    return true;
-  }
-
-  const receivedAmountMinor = toMinorUnits(amountMajor);
+  const receivedAmountMinor = toMinorUnits(result.value);
 
   const updatedMessageIds = [...(session.messageIds || [])];
   if (userMessageId) {

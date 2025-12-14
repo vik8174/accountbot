@@ -7,6 +7,66 @@
  * - UAH: kopiykas (100 kopiykas = 1 hryvnia)
  */
 
+const DEFAULT_MAX_AMOUNT = 1000000;
+
+export type ParseAmountResult =
+  | { success: true; value: number }
+  | { success: false; error: "invalid" | "zero" | "negative" | "max_decimals" | "max_amount" };
+
+export interface ParseAmountOptions {
+  allowNegative?: boolean; // default: true
+  allowZero?: boolean; // default: false
+  maxAmount?: number; // default: 1000000
+}
+
+/**
+ * Parse user input string to amount in major units
+ * Supports formats: 2.25, 2,25, 2, 2., 2.5, -5
+ * @param text User input string
+ * @param options Parsing options
+ * @returns ParseAmountResult with value in major units or error
+ */
+export function parseAmount(
+  text: string,
+  options: ParseAmountOptions = {}
+): ParseAmountResult {
+  const { allowNegative = true, allowZero = false, maxAmount = DEFAULT_MAX_AMOUNT } = options;
+
+  // Normalize: replace comma with dot
+  const normalized = text.trim().replace(",", ".");
+
+  // Parse as float
+  const value = parseFloat(normalized);
+
+  // Check if valid number
+  if (isNaN(value)) {
+    return { success: false, error: "invalid" };
+  }
+
+  // Check zero
+  if (value === 0 && !allowZero) {
+    return { success: false, error: "zero" };
+  }
+
+  // Check negative
+  if (value < 0 && !allowNegative) {
+    return { success: false, error: "negative" };
+  }
+
+  // Check decimal places (max 2)
+  const decimalPart = normalized.split(".")[1];
+  if (decimalPart && decimalPart.length > 2) {
+    return { success: false, error: "max_decimals" };
+  }
+
+  // Check max amount
+  if (Math.abs(value) > maxAmount) {
+    return { success: false, error: "max_amount" };
+  }
+
+  return { success: true, value };
+}
+
 const CURRENCY_SYMBOLS: Record<string, string> = {
   USD: "$",
   EUR: "€",
