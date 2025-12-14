@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.2.0] - 2025-12-14
+
+### Changed
+- Unified number parsing with `parseAmount()` utility
+- Improved button labels with action verbs (Material Design)
+- Updated BotFather setup documentation
+
+---
+
 ## [1.1.0] - 2025-12-08
 
 ### Added
