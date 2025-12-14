@@ -118,13 +118,13 @@ accountbot/
    - `/mybots` → select bot → **Edit Bot** → **Edit Commands**
    - Paste the following commands:
      ```
-     start - Show welcome message
-     add - Add a transaction
+     start - Start the bot
+     add - Add transaction
      balance - View balances
-     history - Transaction history
+     history - View history
      sync - Sync balance
-     transfer - Transfer between accounts
-     cancel - Cancel a transaction
+     transfer - Transfer funds
+     cancel - Cancel transaction
      help - Show help
      ```
 
@@ -132,24 +132,21 @@ accountbot/
 
    - `/mybots` → select bot → **Edit Bot** → **Edit About**:
      ```
-     Track transactions across multiple accounts. Add expenses, transfer between accounts, view balances.
+     Track transactions across multiple accounts. Add, transfer, sync, cancel.
      ```
    - `/mybots` → select bot → **Edit Bot** → **Edit Description**:
 
      ```
-     AccountBot helps you track transactions across multiple accounts.
+     AccountBot — simple transaction tracker.
 
-     Features:
-     • Add transactions with amount and description
-     • Transfer between accounts with auto exchange rates
-     • View balances of all accounts at once
-     • Check recent transaction history
-     • Sync balance when it differs from actual
-     • Cancel transactions if needed
+     • Add — record income or expense
+     • Transfer — move funds between accounts
+     • Balance — view all account balances
+     • History — browse recent transactions
+     • Sync — adjust balance to actual
+     • Cancel — reverse a transaction
 
-     Perfect for personal finance tracking, shared expenses, or managing multiple cards and cash accounts.
-
-     Simple. Fast. Accurate.
+     Supports multiple currencies with auto exchange rates.
      ```
 
 9. Set webhook:
