@@ -289,6 +289,17 @@ See `functions/CLI_SETUP.md` for authentication setup.
 - **Currency:** ISO 4217 codes (EUR, USD, UAH)
 - **Comments:** English
 
+### Button Labels (Material Design)
+
+- **Start with verb** — buttons describe actions: "Add", "Sync", "Cancel"
+- **Short text** — 1-2 words maximum
+- **Sentence case** — only first letter capitalized
+- **Emoji prefix** — for visual distinction in keyboard
+
+Examples:
+- ✅ `💸 Add` (verb, short)
+- ❌ `💸 Transaction` (noun, not an action)
+
 ### Display Formats
 
 **Balance:**
