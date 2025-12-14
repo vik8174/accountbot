@@ -64,11 +64,11 @@ export const uk = {
     accountNotFound: "Рахунок не знайдено.",
   },
   keyboard: {
-    add: "💸 Транзакція",
-    balance: "💰 Баланс",
+    add: "💸 Додати",
+    balance: "💰 Баланси",
     history: "📋 Історія",
-    sync: "🔄 Синхронізація",
-    transfer: "↔️ Переказ",
+    sync: "🔄 Синхр.",
+    transfer: "↔️ Перекинути",
     cancel: "❌ Скасувати",
   },
   months: {
