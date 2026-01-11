@@ -212,11 +212,13 @@ const message = t("add.selectAccount");
 ### /cancel Flow
 
 1. User: `/cancel`
-2. Bot: shows user's recent transactions (max 10, excludes cancellations)
+2. Bot: shows **user's own** recent transactions (max 10, excludes cancellations)
 3. User: clicks transaction → callback `cancel:select:<id>`
 4. Bot: confirmation dialog with transaction details
 5. User: confirms → callback `cancel:confirm:<id>`
 6. Bot: creates reversal transaction, marks original as cancelled
+
+**Important:** In group chats, each user sees only their own transactions (filtered by `createdById`). User A cannot see or cancel transactions created by User B.
 
 **Validation:**
 - Only transaction author can cancel
@@ -275,6 +277,14 @@ await ctx.telegram.sendMessage(
 ```bash
 npm run add-account
 ```
+
+### Renaming an Account
+
+```bash
+npm run rename-account
+```
+
+Changes display name only. Slug (unique identifier) remains unchanged — no need to update transactions.
 
 See `functions/CLI_SETUP.md` for authentication setup.
 

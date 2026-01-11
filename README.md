@@ -48,6 +48,11 @@ accountbot/
         │   ├── firestore.ts      # Firestore operations
         │   ├── logger.ts         # Structured logging
         │   └── currency-api.ts   # Exchange rate API (Frankfurter)
+        ├── cli/
+        │   ├── add-account.ts    # CLI: add new account
+        │   ├── list-accounts.ts  # CLI: list all accounts
+        │   ├── rename-account.ts # CLI: rename account
+        │   └── utils/            # CLI prompts and validation
         ├── utils/
         │   ├── currency.ts       # Currency formatting
         │   ├── date.ts           # Date formatting
@@ -217,6 +222,21 @@ Required composite indexes (defined in `firestore.indexes.json`):
 | `transactions` | `createdById` ASC, `createdAt` DESC | `/cancel` — fetch user's transactions |
 
 Deploy indexes: `firebase deploy --only firestore:indexes`
+
+## CLI Tools
+
+Manage accounts from the command line. Requires authentication — see `functions/CLI_SETUP.md`.
+
+```bash
+# List all accounts
+npm run list-accounts
+
+# Add new account (interactive)
+npm run add-account
+
+# Rename account display name (interactive)
+npm run rename-account
+```
 
 ## Development
 
