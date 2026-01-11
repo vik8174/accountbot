@@ -104,6 +104,25 @@ export async function createAccount(account: Account): Promise<string> {
   return docRef.id;
 }
 
+/**
+ * Update account display name
+ */
+export async function updateAccountName(
+  slug: string,
+  newName: string
+): Promise<void> {
+  const snapshot = await accountsRef.where("slug", "==", slug).limit(1).get();
+
+  if (snapshot.empty) {
+    throw new Error(`Account not found: ${slug}`);
+  }
+
+  const docRef = snapshot.docs[0].ref;
+  await docRef.update({ name: newName });
+
+  log.info("Account name updated", { slug, newName });
+}
+
 // ============ TRANSACTIONS ============
 
 /**

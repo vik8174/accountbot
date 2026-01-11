@@ -16,6 +16,7 @@
     "deploy:indexes": "firebase deploy --only firestore:indexes",
     "logs": "firebase functions:log",
     "add-account": "npm --prefix functions run add-account",
-    "list-accounts": "npm --prefix functions run list-accounts"
+    "list-accounts": "npm --prefix functions run list-accounts",
+    "rename-account": "npm --prefix functions run rename-account"
   }
 }
