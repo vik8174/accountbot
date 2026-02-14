@@ -63,6 +63,10 @@ export const en = {
     userError: "Error: Could not identify chat or user.",
     accountNotFound: "Account not found.",
   },
+  flow: {
+    cancelButton: "❌ Cancel",
+    cancelled: "Operation cancelled.",
+  },
   keyboard: {
     add: "💸 Add",
     balance: "💰 Balances",

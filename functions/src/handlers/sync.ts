@@ -9,7 +9,7 @@ import {
 } from "../services/firestore";
 import { log } from "../services/logger";
 import { toMinorUnits, formatAmount, formatBalance, parseAmount } from "../utils/currency";
-import { getAdaptiveKeyboard } from "../utils/keyboard";
+import { getAdaptiveKeyboard, getCancelKeyboard } from "../utils/keyboard";
 import { getTopicOptions } from "../utils/topics";
 import { t } from "../i18n";
 import { cleanupSession } from "./add";
@@ -129,11 +129,12 @@ export async function handleSyncAccountCallback(ctx: Context): Promise<void> {
     const currentBalanceStr = formatBalance(account.balance, account.currency);
     const currentBalanceLabel = await t("sync.currentBalance", { balance: currentBalanceStr });
     const enterActual = await t("sync.enterActual");
+    const cancelKeyboard = await getCancelKeyboard();
 
     await ctx.answerCbQuery();
     await ctx.editMessageText(
       `<b>${account.name}</b>\n\n${currentBalanceLabel}\n\n${enterActual}`,
-      { parse_mode: "HTML" as const, ...topicOptions }
+      { parse_mode: "HTML" as const, ...cancelKeyboard, ...topicOptions }
     );
   } catch (error) {
     log.error("Error in sync account callback", error as Error, {

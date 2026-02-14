@@ -110,8 +110,8 @@ function formatTimeISO(date: Date): string {
 
 function escapeCSV(value: string): string {
   // Escape double quotes and wrap in quotes if contains comma, quote, or newline
-  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
-    return `"${value.replace(/"/g, '""')}"`;
+  if (value.includes(",") || value.includes("\"") || value.includes("\n")) {
+    return `"${value.replace(/"/g, "\"\"")}"`;
   }
   return value;
 }

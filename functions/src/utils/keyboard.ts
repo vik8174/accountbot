@@ -45,3 +45,13 @@ export async function getAdaptiveKeyboard(ctx: Context) {
   }
   return await getMainKeyboard(); // Existing reply keyboard
 }
+
+/**
+ * Get cancel button for flow prompts
+ * Returns inline keyboard with single cancel button
+ */
+export async function getCancelKeyboard() {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback(await t("flow.cancelButton"), "flow:cancel")],
+  ]);
+}

@@ -5,6 +5,7 @@ import {
   handleAddCommand,
   handleAccountCallback,
   handleSessionMessage,
+  handleFlowCancelCallback,
 } from "./handlers/add";
 import {
   handleSyncCommand,
@@ -115,6 +116,9 @@ export function createBot(token: string): Telegraf {
   bot.action(/^cancel:select:.+$/, handleCancelSelectCallback);
   bot.action(/^cancel:confirm:.+$/, handleCancelConfirmCallback);
   bot.action("cancel:abort", handleCancelAbortCallback);
+
+  // Flow cancel callback (cancel button in add/sync/transfer flows)
+  bot.action("flow:cancel", handleFlowCancelCallback);
 
   // Inline keyboard callback handlers (for forum topics)
   bot.action("cmd:add", handleAddCommand);

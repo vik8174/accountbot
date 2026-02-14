@@ -10,7 +10,7 @@ import {
 } from "../services/firestore";
 import { log } from "../services/logger";
 import { toMinorUnits, formatAmount, parseAmount } from "../utils/currency";
-import { getAdaptiveKeyboard } from "../utils/keyboard";
+import { getAdaptiveKeyboard, getCancelKeyboard } from "../utils/keyboard";
 import { getTopicOptions } from "../utils/topics";
 import { handleSyncAmountInput } from "./sync";
 import {
@@ -53,6 +53,50 @@ export async function cleanupSession(ctx: Context): Promise<void> {
     await deleteSession(sessionKey);
   } catch (error) {
     log.error("Error cleaning up session", error as Error, {
+      chatId: ctx.chat?.id,
+    });
+  }
+}
+
+/**
+ * Handle flow cancel callback (inline button)
+ * Cleans up session and shows cancellation message
+ */
+export async function handleFlowCancelCallback(ctx: Context): Promise<void> {
+  try {
+    await ctx.answerCbQuery();
+
+    const chatId = ctx.chat?.id?.toString();
+    const telegramUserId = ctx.from?.id?.toString();
+
+    if (!chatId || !telegramUserId) {
+      return;
+    }
+
+    // Get topic options before cleanup
+    const topicOptions = getTopicOptions(ctx);
+
+    // Cleanup session and delete messages
+    await cleanupSession(ctx);
+
+    // Delete the message with cancel button
+    if (ctx.callbackQuery && "message" in ctx.callbackQuery && ctx.callbackQuery.message) {
+      try {
+        await ctx.telegram.deleteMessage(ctx.chat!.id, ctx.callbackQuery.message.message_id);
+      } catch { /* ignore */ }
+    }
+
+    // Send cancellation message
+    await ctx.telegram.sendMessage(
+      ctx.chat!.id,
+      await t("flow.cancelled"),
+      {
+        ...(await getAdaptiveKeyboard(ctx)),
+        ...topicOptions,
+      }
+    );
+  } catch (error) {
+    log.error("Error in flow cancel callback", error as Error, {
       chatId: ctx.chat?.id,
     });
   }
@@ -172,10 +216,12 @@ export async function handleAccountCallback(ctx: Context): Promise<void> {
 
     const selected = await t("add.selected", { name: account.name });
     const enterAmount = await t("add.enterAmount");
+    const cancelKeyboard = await getCancelKeyboard();
 
     await ctx.answerCbQuery();
     await ctx.editMessageText(`${selected}\n\n${enterAmount}`, {
       parse_mode: "HTML",
+      ...cancelKeyboard,
       ...topicOptions,
     });
   } catch (error) {
@@ -324,10 +370,14 @@ async function handleAmountInput(
     updatedMessageIds.push(userMessageId);
   }
 
+  const cancelKeyboard = await getCancelKeyboard();
   const botResponse = await ctx.telegram.sendMessage(
     ctx.chat!.id,
     await t("add.enterDescription"),
-    topicOptions
+    {
+      ...cancelKeyboard,
+      ...topicOptions,
+    }
   );
   updatedMessageIds.push(botResponse.message_id);
 

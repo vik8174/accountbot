@@ -11,7 +11,7 @@ import {
 import { convertCurrency, formatExchangeRate } from "../services/currency-api";
 import { log } from "../services/logger";
 import { toMinorUnits, formatAmount, parseAmount } from "../utils/currency";
-import { getAdaptiveKeyboard } from "../utils/keyboard";
+import { getAdaptiveKeyboard, getCancelKeyboard } from "../utils/keyboard";
 import { getTopicOptions } from "../utils/topics";
 import { cleanupSession } from "./add";
 import { t } from "../i18n";
@@ -219,6 +219,7 @@ export async function handleTransferToCallback(ctx: Context): Promise<void> {
 
     const fromLabel = await t("transfer.from");
     const toLabel = await t("transfer.to");
+    const cancelKeyboard = await getCancelKeyboard();
 
     await ctx.answerCbQuery();
     await ctx.editMessageText(
@@ -227,6 +228,7 @@ export async function handleTransferToCallback(ctx: Context): Promise<void> {
         (await t("transfer.enterAmount", { currency: fromAccount.currency })),
       {
         parse_mode: "HTML",
+        ...cancelKeyboard,
         ...topicOptions,
       }
     );
@@ -295,10 +297,11 @@ export async function handleTransferAmountInput(
 
   // Same currency - go directly to description
   if (fromAccount.currency === toAccount.currency) {
+    const cancelKeyboard = await getCancelKeyboard();
     const botResponse = await ctx.telegram.sendMessage(
       ctx.chat!.id,
       await t("transfer.enterDescription"),
-      topicOptions
+      { ...cancelKeyboard, ...topicOptions }
     );
     updatedMessageIds.push(botResponse.message_id);
 
@@ -325,10 +328,11 @@ export async function handleTransferAmountInput(
 
   if (conversion === null) {
     // API failed - ask for manual input
+    const cancelKeyboard = await getCancelKeyboard();
     const botResponse = await ctx.telegram.sendMessage(
       ctx.chat!.id,
       await t("transfer.rateFailed", { currency: toAccount.currency }),
-      topicOptions
+      { ...cancelKeyboard, ...topicOptions }
     );
     updatedMessageIds.push(botResponse.message_id);
 
@@ -365,10 +369,12 @@ export async function handleTransferAmountInput(
     amount: formattedToAmount,
   });
   const customLabel = await t("transfer.customAmount");
+  const cancelLabel = await t("flow.cancelButton");
 
   const keyboard = Markup.inlineKeyboard([
     [Markup.button.callback(`✅ ${acceptLabel}`, "transfer:rate:accept")],
     [Markup.button.callback(`✏️ ${customLabel}`, "transfer:rate:custom")],
+    [Markup.button.callback(cancelLabel, "flow:cancel")],
   ]);
 
   const botResponse = await ctx.telegram.sendMessage(
@@ -441,10 +447,11 @@ export async function handleTransferRateCallback(ctx: Context): Promise<void> {
       // User accepted the calculated rate - go to description
       await ctx.editMessageReplyMarkup(undefined);
 
+      const cancelKeyboard = await getCancelKeyboard();
       const botResponse = await ctx.telegram.sendMessage(
         ctx.chat!.id,
         await t("transfer.enterDescription"),
-        topicOptions
+        { ...cancelKeyboard, ...topicOptions }
       );
 
       const updatedMessageIds = [...(session.messageIds || [])];
@@ -467,13 +474,14 @@ export async function handleTransferRateCallback(ctx: Context): Promise<void> {
 
       await ctx.editMessageReplyMarkup(undefined);
 
+      const cancelKeyboard = await getCancelKeyboard();
       const botResponse = await ctx.telegram.sendMessage(
         ctx.chat!.id,
         await t("transfer.enterReceivedAmount", {
           name: toAccount?.name || "",
           currency: toAccount?.currency || "",
         }),
-        topicOptions
+        { ...cancelKeyboard, ...topicOptions }
       );
 
       const updatedMessageIds = [...(session.messageIds || [])];
@@ -538,10 +546,11 @@ export async function handleTransferReceivedInput(
     updatedMessageIds.push(userMessageId);
   }
 
+  const cancelKeyboard = await getCancelKeyboard();
   const botResponse = await ctx.telegram.sendMessage(
     ctx.chat!.id,
     await t("transfer.enterDescription"),
-    topicOptions
+    { ...cancelKeyboard, ...topicOptions }
   );
   updatedMessageIds.push(botResponse.message_id);
 
