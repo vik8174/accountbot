@@ -49,10 +49,11 @@ accountbot/
         │   ├── logger.ts         # Structured logging
         │   └── currency-api.ts   # Exchange rate API (Frankfurter)
         ├── cli/
-        │   ├── add-account.ts    # CLI: add new account
-        │   ├── list-accounts.ts  # CLI: list all accounts
-        │   ├── rename-account.ts # CLI: rename account
-        │   └── utils/            # CLI prompts and validation
+        │   ├── add-account.ts       # CLI: add new account
+        │   ├── list-accounts.ts     # CLI: list all accounts
+        │   ├── rename-account.ts    # CLI: rename account
+        │   ├── export-transactions.ts # CLI: export transactions to CSV
+        │   └── utils/               # CLI prompts and validation
         ├── utils/
         │   ├── currency.ts       # Currency formatting
         │   ├── date.ts           # Date formatting
@@ -225,7 +226,7 @@ Deploy indexes: `firebase deploy --only firestore:indexes`
 
 ## CLI Tools
 
-Manage accounts from the command line. Requires authentication — see `functions/CLI_SETUP.md`.
+Manage accounts and export data from the command line. Requires authentication — see `functions/CLI_SETUP.md`.
 
 ```bash
 # List all accounts
@@ -236,7 +237,15 @@ npm run add-account
 
 # Rename account display name (interactive)
 npm run rename-account
+
+# Export transactions to CSV
+npm run export-transactions
+npm run export-transactions -- --account cash
+npm run export-transactions -- --from 2024-01-01 --to 2024-12-31
+npm run export-transactions -- --account visa --from 2024-01-01
 ```
+
+Exported files are saved to `functions/exports/`.
 
 ## Development
 

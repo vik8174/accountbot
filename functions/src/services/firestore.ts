@@ -203,6 +203,41 @@ export async function getTransactions(
   }));
 }
 
+/**
+ * Get all transactions with optional filters
+ * @param accountSlug Filter by account slug (optional)
+ * @param startDate Filter from this date, inclusive (optional)
+ * @param endDate Filter until this date, inclusive (optional)
+ */
+export async function getAllTransactions(
+  accountSlug?: string,
+  startDate?: Date,
+  endDate?: Date
+): Promise<(Transaction & { id: string })[]> {
+  let query: admin.firestore.Query = transactionsRef.orderBy("createdAt", "asc");
+
+  if (accountSlug) {
+    query = query.where("accountSlug", "==", accountSlug);
+  }
+
+  if (startDate) {
+    query = query.where("createdAt", ">=", Timestamp.fromDate(startDate));
+  }
+
+  if (endDate) {
+    // End of day for inclusive end date
+    const endOfDay = new Date(endDate);
+    endOfDay.setHours(23, 59, 59, 999);
+    query = query.where("createdAt", "<=", Timestamp.fromDate(endOfDay));
+  }
+
+  const snapshot = await query.get();
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...(doc.data() as Transaction),
+  }));
+}
+
 // ============ SESSIONS ============
 
 /**

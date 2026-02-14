@@ -286,6 +286,16 @@ npm run rename-account
 
 Changes display name only. Slug (unique identifier) remains unchanged — no need to update transactions.
 
+### Exporting Transactions
+
+```bash
+npm run export-transactions
+npm run export-transactions -- --account cash
+npm run export-transactions -- --from 2024-01-01 --to 2024-12-31
+```
+
+Exports to `functions/exports/transactions_<account>_<from>_<to>.csv`.
+
 See `functions/CLI_SETUP.md` for authentication setup.
 
 ---

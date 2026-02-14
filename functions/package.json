@@ -10,7 +10,8 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "add-account": "ts-node src/cli/add-account.ts",
     "list-accounts": "ts-node src/cli/list-accounts.ts",
-    "rename-account": "ts-node src/cli/rename-account.ts"
+    "rename-account": "ts-node src/cli/rename-account.ts",
+    "export-transactions": "ts-node src/cli/export-transactions.ts"
   },
   "engines": {
     "node": "20"

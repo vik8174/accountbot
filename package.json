@@ -17,6 +17,7 @@
     "logs": "firebase functions:log",
     "add-account": "npm --prefix functions run add-account",
     "list-accounts": "npm --prefix functions run list-accounts",
-    "rename-account": "npm --prefix functions run rename-account"
+    "rename-account": "npm --prefix functions run rename-account",
+    "export-transactions": "npm --prefix functions run export-transactions"
   }
 }
