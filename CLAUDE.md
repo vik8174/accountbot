@@ -309,6 +309,28 @@ See `functions/CLI_SETUP.md` for authentication setup.
 - **Currency:** ISO 4217 codes (EUR, USD, UAH)
 - **Comments:** English
 
+### CLI Output Style
+
+All CLI scripts follow consistent output formatting:
+
+```
+=== Script Title ===
+
+✅ Action completed successfully!
+   Detail 1: value
+   Detail 2: value
+
+❌ Error: message
+```
+
+| Element | Format |
+|---------|--------|
+| Title | `=== Title ===\n` |
+| Success | `\n✅ ... successfully!` |
+| Details | 3-space indent `   ` |
+| Error | `\n❌ Error: ...` |
+| End | Empty line `\n` |
+
 ### Button Labels (Material Design)
 
 - **Start with verb** — buttons describe actions: "Add", "Sync", "Cancel"
