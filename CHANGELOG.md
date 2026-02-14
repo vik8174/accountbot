@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.3.0] - 2025-02-14
+
+### Added
+- CLI: `npm run export-transactions` — export transactions to CSV
+- CLI: `npm run rename-account` — rename account display name
+- Cancel button in /add, /sync, /transfer flows for quick operation cancellation
+
+### Changed
+- Updated CLAUDE.md with CLI output style convention
+
+---
+
 ## [1.2.0] - 2025-12-14
 
 ### Changed
